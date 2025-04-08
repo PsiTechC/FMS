@@ -523,3 +523,71 @@
 
 
 
+// components/AdminDashboard.js
+import React, { useState } from "react";
+import Sidebar from "./Sidebar";
+
+function AdminDashboard() {
+  const [isOpen, setIsOpen] = useState(true); // Sidebar open by default
+
+  const toggleSidebar = () => setIsOpen(!isOpen);
+
+  return (
+    <div>
+      {/* Menu Icon */}
+      <div className="position-fixed top-0 start-0 p-3" style={{ zIndex: 1050 }}>
+        <button className="btn btn-outline-light bg-dark" onClick={toggleSidebar}>
+          &#9776;
+        </button>
+      </div>
+
+      {/* Sidebar */}
+      <Sidebar isOpen={isOpen} />
+
+      {/* Clients + Devices Boxes */}
+      <div
+        className="position-fixed d-flex gap-4"
+        style={{
+          top: "100px",
+          left: isOpen ? "300px" : "100px",
+          transition: "left 0.5s ease",
+          zIndex: 1039,
+        }}
+      >
+        <div
+          className="bg-light text-dark rounded p-5 shadow-lg"
+          style={{
+            fontWeight: "bold",
+            fontSize: "1.8rem",
+            minWidth: "300px",
+            minHeight: "150px",
+            textAlign: "center",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          Clients
+        </div>
+
+        <div
+          className="bg-light text-dark rounded p-5 shadow-lg"
+          style={{
+            fontWeight: "bold",
+            fontSize: "1.8rem",
+            minWidth: "300px",
+            minHeight: "150px",
+            textAlign: "center",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          Devices
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default AdminDashboard;

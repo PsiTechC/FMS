@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 function Sidebar({ isOpen }) {
   return (
@@ -6,33 +7,30 @@ function Sidebar({ isOpen }) {
       className="bg-dark text-white position-fixed start-0 p-4 shadow"
       style={{
         width: '250px',
-        top: '60px', 
+        top: '60px',
         bottom: 0,
         transform: isOpen ? 'translateX(0)' : 'translateX(-100%)',
         transition: 'transform 0.3s ease',
         zIndex: 1040,
       }}
     >
-        <div>
-        <h4 className="mb-4">Menu</h4>
-    <ul className="nav flex-column">
+      <h4 className="mb-4">Menu</h4>
+      <ul className="nav flex-column">
         <li className="nav-item">
-          <a className="nav-link text-white" href="#">Clients</a>
+          <Link className="nav-link text-white" to="/clients">Clients</Link>
         </li>
         <li className="nav-item">
-          <a className="nav-link text-white" href="#">Devices</a>
+          <Link className="nav-link text-white" to="/">Devices</Link>
         </li>
         <li className="nav-item">
-          <a className="nav-link text-white" href="#">Client-Device</a>
+          <Link className="nav-link text-white" to="#">Client-Device</Link>
         </li>
         <li className="nav-item">
-          <a className="nav-link text-white" href="#">Logout</a>
+          <Link className="nav-link text-white" to="#">Logout</Link>
         </li>
-    </ul>
-        </div>
-    </div> 
+      </ul>
+    </div>
   );
 }
 
 export default Sidebar;
-
