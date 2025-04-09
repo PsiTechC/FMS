@@ -1,4 +1,3 @@
-// routes/ForAdmin.js
 const express = require("express");
 const router = express.Router();
 const bcrypt = require("bcrypt");
@@ -25,9 +24,9 @@ router.post("/admin-login", (req, res) => {
   }
 });
 
-// ✅ Combined Universal Login Route
 router.post("/login", async (req, res) => {
   const { username, password } = req.body;
+  console.log("Login attempt:", username);
 
   // 🔒 Basic validation
   if (!username || !password) {
@@ -42,38 +41,31 @@ router.post("/login", async (req, res) => {
       console.log(`[LOGIN] Admin '${username}' logged in.`);
       return res.status(200).json({ role: "admin" });
     }
+  
+    const client = await Client.findOne({ email: username });
 
-    // 2️⃣ Client Check
-    const client = await Client.findOne({ username });
-
-if (client) {
-  if (client.password) {
-    const isMatch = await bcrypt.compare(password, client.password);
-
-    if (isMatch) {
-      return res.status(200).json({
-        role: "client",
-        clientId: client._id,
-        username: client.username,
-      });
-    } else {
-      console.warn(`[LOGIN] Incorrect password for user: ${username}`);
-      return res.status(401).json({ error: "Invalid username or password" });
+    if (!client) {
+      console.warn("Client not found for email:", username);
+      return res.status(401).json({ error: "Invalid credentials" });
     }
-  } else {
-    console.warn(`[LOGIN] No password set for client: ${username}`);
-    return res.status(401).json({ error: "Invalid login data" });
-  }
-}
 
-    // ❌ No match found
-    console.warn(`[LOGIN FAILED] Username '${username}' failed to login.`);
-    return res.status(401).json({ error: "Invalid username or password" });
+    const isMatch = await bcrypt.compare(password, client.password);
+    console.log("Password match:", isMatch);
 
-  } catch (err) {
-    console.error("Login error:", err);
-    res.status(500).json({ error: "Login failed" });
+    if (!isMatch) {
+      return res.status(401).json({ error: "Invalid credentials" });
+    }
+
+    return res.status(200).json({
+      role: "client",
+      clientId: client._id,
+      username: client.username,
+    });
+
+  } catch (error) {
+    console.error("🔥 Login error:", error.stack || error.message);
+    return res.status(500).json({ error: "Internal server error" });
   }
-});
+})
 
 module.exports = router;

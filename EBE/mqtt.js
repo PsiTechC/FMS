@@ -27,7 +27,6 @@ if (typeof waterLevel === "number") {
   console.log(`📊 Stored waterLevel: ${waterLevel} cm at ${timestamp.toLocaleTimeString()}`);
 }
 
-
 // Handle successful connection
 client.on('connect', () => {
   console.log('Connected successfully to broker.');

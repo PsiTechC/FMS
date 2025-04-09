@@ -1,10 +1,10 @@
 const mongoose = require("mongoose");
-const { v4: uuidv4 } = require("uuid");
 
 const deviceSchema = new mongoose.Schema({
-  deviceID: { type: String, default: () => uuidv4(), unique: true },
+  deviceID: { type: String, unique: true }, // No default
   name: { type: String, required: true },
   description: { type: String, default: "" },
+  location: { type: String, default: "" },  // ✅ Added location field
   isEnabled: { type: Boolean, default: true },
   isActive: { type: Boolean, default: true },
   isFaulty: { type: Boolean, default: false },

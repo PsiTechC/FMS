@@ -2,30 +2,49 @@ const express = require("express");
 const router = express.Router();
 const DeviceMaster = require("../modals/DeviceMaster");
 
-// POST /api/devices - Save new device
+// Helper function to generate the next device ID
+async function generateNextDeviceID() {
+  const latest = await DeviceMaster.findOne().sort({ created_at: -1 });
+
+  if (!latest || !latest.deviceID) {
+    return "FMS00001";  // First device
+  }
+  const num = parseInt(latest.deviceID.replace("FMS", ""), 10);
+  const nextNum = num + 1;
+  const padded = String(nextNum).padStart(5, "0");  // <-- 5 digits now
+  return `FMS${padded}`;
+}
+
+
+// POST route
 router.post("/devices", async (req, res) => {
   try {
-    const { name, description } = req.body;
+    const { name, description, location } = req.body;
+    const deviceID = await generateNextDeviceID();
+    const newDevice = new DeviceMaster({
+      deviceID,
+      name,
+      description,
+      location,
+    });
 
-    const newDevice = new DeviceMaster({ name, description });
-    const savedDevice = await newDevice.save();
-
-    res.status(201).json({ message: "Device saved successfully", device: savedDevice });
-  } catch (error) {
-    console.error("Error saving device:", error);
-    res.status(400).json({ error: error.message });
+    const saved = await newDevice.save();
+    res.status(201).json(saved);
+  } catch (err) {
+    console.error("Error saving device:", err);
+    res.status(500).json({ error: "Failed to save device" });
   }
 });
 
-// ✅ GET /api/devices - Fetch all devices
+// GET all devices
 router.get("/devices", async (req, res) => {
   try {
-    const devices = await DeviceMaster.find().sort({ name: 1 }); // sorted alphabetically
-    res.status(200).json(devices);
+    const devices = await DeviceMaster.find().sort({ created_at: -1 });
+    res.json(devices);
   } catch (error) {
-    console.error("Error fetching devices:", error);
     res.status(500).json({ error: "Failed to fetch devices" });
   }
 });
+
 
 module.exports = router;

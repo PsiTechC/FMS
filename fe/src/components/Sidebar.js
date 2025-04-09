@@ -1,7 +1,6 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
 
-function Sidebar({ isOpen }) {
+function Sidebar({ isOpen, setActivePanel }) {
   return (
     <div
       className="bg-dark text-white position-fixed start-0 p-4 shadow"
@@ -16,17 +15,30 @@ function Sidebar({ isOpen }) {
     >
       <h4 className="mb-4">Menu</h4>
       <ul className="nav flex-column">
-        <li className="nav-item">
-          <Link className="nav-link text-white" to="/clients">Clients</Link>
+      <li className="nav-item">
+          <button className="nav-link text-white btn btn-link" onClick={() => setActivePanel("dashboard")}>
+            Dashboard
+          </button>
         </li>
         <li className="nav-item">
-          <Link className="nav-link text-white" to="/">Devices</Link>
+          <button className="nav-link text-white btn btn-link" onClick={() => setActivePanel("clients")}>
+            Clients
+          </button>
         </li>
         <li className="nav-item">
-          <Link className="nav-link text-white" to="#">Client-Device</Link>
+          <button className="nav-link text-white btn btn-link" onClick={() => setActivePanel("devices")}>
+            Devices
+          </button>
         </li>
         <li className="nav-item">
-          <Link className="nav-link text-white" to="#">Logout</Link>
+          <button className="nav-link text-white btn btn-link" onClick={() => setActivePanel("deviceMapping")}>
+            Device-Mapping
+          </button>
+        </li>
+        <li className="nav-item">
+          <button className="nav-link text-white btn btn-link" onClick={() => setActivePanel("clients")}>
+            Support
+          </button>
         </li>
       </ul>
     </div>
