@@ -15,6 +15,7 @@
     "dotenv": "^16.4.7",
     "express": "^5.1.0",
     "js-cookie": "^3.0.5",
+    "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.13.1",
     "mqtt": "^5.10.4",
     "nodemailer": "^6.10.0",

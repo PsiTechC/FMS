@@ -27,6 +27,9 @@ import Loginn from "./components/Loginn";
 import AdminDashboard from "./components/AdminDashboard";
 import ClientDashboard from "./components/ClientDashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
+import 'leaflet/dist/leaflet.css';
+import './App.css';
+
 
 function App() {
   return (

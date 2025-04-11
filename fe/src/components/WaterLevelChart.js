@@ -89,13 +89,16 @@ import {
 } from "recharts";
 
 function WaterLevelChart({ history = [], waterLevel }) {
-  const data = history.map((entry) => ({
-    time: new Date(entry.time).toLocaleTimeString([], {
-      hour: "2-digit",
-      minute: "2-digit",
-    }),
-    waterLevel: entry.value,
-  }));
+  const data =
+    history.length > 0
+      ? history.map((entry) => ({
+          time: new Date(entry.time).toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+          waterLevel: entry.value,
+        }))
+      : [{ time: "00:00", waterLevel: 0 }]; // fallback point for initial render
 
   return (
     <div
@@ -105,18 +108,14 @@ function WaterLevelChart({ history = [], waterLevel }) {
       <div className="d-flex justify-content-between align-items-center mb-2">
         <h6 className="text-light mb-0">Water Level</h6>
         <h6 className="text-success mb-0">
-          {waterLevel} <small className="text-muted">cm</small>
+          {waterLevel ?? 0} <small className="text-muted">cm</small>
         </h6>
       </div>
 
       <ResponsiveContainer width="100%" height={180}>
         <LineChart data={data} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
           <CartesianGrid stroke="#444" strokeDasharray="3 3" />
-          <XAxis
-            dataKey="time"
-            stroke="#aaa"
-            tick={{ fontSize: 10 }}
-          />
+          <XAxis dataKey="time" stroke="#aaa" tick={{ fontSize: 10 }} />
           <YAxis
             domain={[0, "auto"]}
             label={{

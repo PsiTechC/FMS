@@ -180,3 +180,59 @@ module.exports = {
     broadcastCallback = cb;
   }
 };
+
+
+// const mqtt = require("mqtt");
+
+// const BROKER_URL = "mqtt://test.mosquitto.org:1883";
+// const TOPIC_1 = "Device1/waterDevice1";
+// const TOPIC_2 = "Device2/waterDevice2";
+
+// // Dummy data that we want to send
+// const dummyData = {
+//   deviceID: "FMS00001",
+//   distance: 278,
+//   waterLevel: -28,
+//   batteryVoltage: 4.48,
+//   solarVoltage: 23.3,
+//   temp: 32.03,
+//   hum: 52.36,
+//   batteryPercent: 100,
+//   alert: "none",
+//   sigBm: -57,
+//   topic: "Device1/waterDevice1",
+//   receivedAt: new Date().toISOString()
+// };
+
+// const client = mqtt.connect(BROKER_URL);
+
+// client.on("connect", () => {
+//   console.log("Connected successfully to broker.");
+
+//   // Simulate sending data to both topics every minute
+//   setInterval(() => {
+//     const payload = JSON.stringify(dummyData);
+    
+//     // Publishing to the topics
+//     client.publish(TOPIC_1, payload, (err) => {
+//       if (err) {
+//         console.error("Failed to send data to TOPIC_1:", err);
+//       } else {
+//         console.log(`Data sent to ${TOPIC_1}:`, dummyData);
+//       }
+//     });
+
+//     client.publish(TOPIC_2, payload, (err) => {
+//       if (err) {
+//         console.error("Failed to send data to TOPIC_2:", err);
+//       } else {
+//         console.log(`Data sent to ${TOPIC_2}:`, dummyData);
+//       }
+//     });
+//   }, 60000); // Send data every 60 seconds
+// });
+
+// client.on("error", (err) => {
+//   console.error("Error with MQTT connection:", err);
+// });
+

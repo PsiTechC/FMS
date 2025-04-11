@@ -1,10 +1,24 @@
-// routes/deviceMappingRoutes.js
 const express = require("express");
 const router = express.Router();
 const ClientDeviceMap = require("../modals/ClientDeviceMap");
 
 const ClientMaster = require("../modals/ClientMaster");
 const DeviceMaster = require("../modals/DeviceMaster");
+
+router.get("/mappings/client/:clientId", async (req, res) => {
+  try {
+    const clientId = req.params.clientId;
+    const mappings = await ClientDeviceMap.find({ clientId })
+      .populate("deviceId", "deviceID name description") // include useful device fields
+      .populate("clientId", "username"); // optional
+
+    res.status(200).json(mappings);
+  } catch (error) {
+    console.error("Error fetching client mappings:", error);
+    res.status(500).json({ message: "Error fetching mappings" });
+  }
+});
+
 
 // ✅ GET Mappings
 router.get("/mappings", async (req, res) => {
@@ -73,6 +87,50 @@ router.post("/map-devices", async (req, res) => {
   }
 });
 
+// router.get("/mappings/client/:clientId", async (req, res) => {
+//   const { clientId } = req.params;
 
+//   try {
+//     // Find mappings for the given clientId and populate the deviceId with name and location.
+//     const mappings = await ClientDeviceMap.find({ clientId })
+//       .populate("deviceId", "deviceID name location") // Populate deviceId with deviceID, name, and location
+//       .select("deviceId"); // Only select the deviceId field from the mappings.
+
+//     // Check if mappings exist for the client
+//     if (!mappings.length) {
+//       return res.status(404).json({ error: "No devices found for this client." });
+//     }
+
+//     // Return the populated device details
+//     res.status(200).json(mappings.map(mapping => mapping.deviceId)); // Return only the populated deviceId fields
+
+//   } catch (err) {
+//     console.error("Error fetching mappings:", err);
+//     res.status(500).json({ error: "Server error, unable to fetch mappings." });
+//   }
+// });
+
+router.get("/mappings/client/:clientId", async (req, res) => {
+  const { clientId } = req.params; // Extract clientId from request parameters
+
+  try {
+    // Find the mappings of devices for the given clientId and populate device details
+    const mappings = await ClientDeviceMap.find({ clientId })
+      .populate("deviceId", "deviceID name location") // Populate deviceId with deviceID, name, and location
+      .select("deviceId"); // Only select the deviceId field from the mappings
+
+    // If no mappings are found for this client
+    if (!mappings.length) {
+      return res.status(404).json({ error: "No devices found for this client." });
+    }
+
+    // Send back the populated device details
+    res.status(200).json(mappings.map(mapping => mapping.deviceId)); // Send only the populated deviceId fields
+
+  } catch (err) {
+    console.error("Error fetching mapped devices:", err);
+    res.status(500).json({ error: "Server error, unable to fetch mapped devices." });
+  }
+});
 
 module.exports = router;

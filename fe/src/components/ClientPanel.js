@@ -491,14 +491,15 @@ function ClientPanel({ clients, fetchClients }) {
   const [stateInput, setStateInput] = useState("");
   const [country, setCountry] = useState("");
   const [phone, setPhone] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-
+  const [loading, setLoading] = useState(false);
 
   // Error state
   const [errors, setErrors] = useState({});
 
   const openModal = () => setShowModal(true);
   const closeModal = () => setShowModal(false);
+
+
 
   // Validate form fields
   const validate = () => {
@@ -518,7 +519,7 @@ function ClientPanel({ clients, fetchClients }) {
   };
 
   const handleSaveChanges = async () => {
-    setIsLoading(true);
+    setLoading(true);
     const validationErrors = validate();
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
@@ -539,12 +540,17 @@ function ClientPanel({ clients, fetchClients }) {
     };
 
     try {
-      await axios.post("http://localhost:5000/api/clients", clientData);
-      console.log("Client saved successfully");
+      // await axios.post("http://localhost:5000/api/clients", clientData);
+      const token = localStorage.getItem("token");
+await axios.post("http://localhost:5000/api/clients", clientData, {
+  headers: {
+    Authorization: `Bearer ${token}`,
+  },
+});
 
+      console.log("Client saved successfully");
       // Refresh clients list
       fetchClients();
-
       // Clear fields and close the modal
       setClientUsername("");
       setClientEmail("");
@@ -557,14 +563,21 @@ function ClientPanel({ clients, fetchClients }) {
     } catch (error) {
       console.error("Error saving client:", error.response ? error.response.data : error.message);
     }
-    setIsLoading(false);
+    setLoading(false);
   };
 
   const handleDeleteClient = async (id) => {
     if (!window.confirm("Are you sure you want to delete this client?")) return;
   
     try {
-      await axios.delete(`http://localhost:5000/api/clients/${id}`);
+      // await axios.delete(`http://localhost:5000/api/clients/${id}`);
+      const token = localStorage.getItem("token");
+await axios.delete(`http://localhost:5000/api/clients/${id}`, {
+  headers: {
+    Authorization: `Bearer ${token}`,
+  },
+});
+
       console.log("Client deleted");
   
       // Remove client from local state
@@ -645,16 +658,17 @@ function ClientPanel({ clients, fetchClients }) {
         </table>
       </div>
 
-      {isLoading && (
+      {loading && (
         <div
-            className="position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center"
-            style={{ backgroundColor: "rgba(0, 0, 0, 0.3)", zIndex: 1050 }}
+          className="position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center"
+          style={{ backgroundColor: "rgba(0,0,0,0.4)", zIndex: 9999 }}
         >
-            <div className="spinner-border text-primary" role="status" style={{ width: "3rem", height: "3rem" }}>
+          <div className="spinner-border text-light" role="status">
             <span className="visually-hidden">Loading...</span>
-            </div>
+          </div>
         </div>
-        )}
+      )}
+
 
       {/* Modal for Add User */}
       {showModal && (

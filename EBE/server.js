@@ -3,7 +3,6 @@
 // const mongoose = require("mongoose");
 // require("dotenv").config(); // at the top of your server.js
 
-
 // const app = express();
 // app.use(cors());
 // app.use(express.json());
@@ -44,7 +43,6 @@ const cors = require("cors");
 const mongoose = require("mongoose");
 require("dotenv").config();
 
-
 const app = express();
 const server = http.createServer(app); // ✅ Create HTTP server from Express
 
@@ -63,12 +61,10 @@ setBroadcastCallback((mqttData) => {
   });
 });
 
-
 wss.on("connection", (ws) => {
   console.log("✅ WebSocket client connected");
   ws.on("close", () => console.log("❌ WebSocket client disconnected"));
 });
-
 
 // 🔐 Middleware
 app.use(cors({
@@ -92,8 +88,13 @@ app.use("/api", require("./routes/ForAdmin"));
 app.use("/api", require("./routes/clientRoutes"));
 app.use("/api", require("./routes/deviceRoutes"));
 app.use("/api", require("./routes/deviceMappingRoutes"));
+const passwordResetRoutes = require("./routes/passwordResetRoutes");
+app.use("/api", passwordResetRoutes);
+
 app.use("/api", require("./routes/deviceDataRoutes"));
 const mqttRoutes = require("./routes/mqttRoutes");
+app.use("/api/auth", require("./routes/auth"));
+
 app.use("/api", mqttRoutes);
 
 // 🚀 Start server (same port for HTTP + WebSocket)

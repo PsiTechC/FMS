@@ -6,6 +6,7 @@ function MappingPanel({ clients, devices, mappings, fetchMappings }) {
   const [selectedDevices, setSelectedDevices] = useState([]);
   const [showClientDropdown, setShowClientDropdown] = useState(false);
   const [showDeviceDropdown, setShowDeviceDropdown] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const clientDropdownRef = useRef(null);
   const deviceDropdownRef = useRef(null);
@@ -61,6 +62,7 @@ function MappingPanel({ clients, devices, mappings, fetchMappings }) {
       alert("Mapping failed");
     }
   };
+  
 
   return (
     <div className="card shadow-sm p-3 mb-3" style={{ width: "1100px", minHeight: "400px" }}>
@@ -136,17 +138,17 @@ function MappingPanel({ clients, devices, mappings, fetchMappings }) {
   </div>
 
   {/* Map Button */}
-  <div className="col-md-2 d-flex align-items-end">
-    <button
-      className="btn btn-warning btn-sm w-100"
-      style={{ height: "38px" }}
-      onClick={handleMapDevice}
-    >
-      Map Device
-    </button>
-  </div>
-</div>
-
+      <div className="col-md-2 d-flex align-items-end">
+        <button
+          className="btn btn-warning btn-sm w-100"
+          style={{ height: "38px" }}
+          onClick={handleMapDevice}
+        >
+          Map Device
+        </button>
+      </div>
+    </div>
+    
       {/* Mapped List */}
       <div className="mt-3">
         <h6>Mapped Clients & Devices</h6>
@@ -160,6 +162,18 @@ function MappingPanel({ clients, devices, mappings, fetchMappings }) {
           </ul>
         </div>
       </div>
+
+      {loading && (
+        <div
+          className="position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center"
+          style={{ backgroundColor: "rgba(0,0,0,0.4)", zIndex: 9999 }}
+        >
+          <div className="spinner-border text-light" role="status">
+            <span className="visually-hidden">Loading...</span>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

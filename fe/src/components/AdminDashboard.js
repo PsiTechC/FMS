@@ -686,7 +686,6 @@
 
 // export default AdminDashboard;
 
-
 // src/components/AdminDashboard.js
 import React, { useState, useEffect, useRef } from "react";
 import Sidebar from "./Sidebar";
@@ -732,6 +731,7 @@ const handleLogout = () => {
       console.error("Error fetching mappings:", error);
     }
   };
+  
 
   const fetchDevices = async () => {
     try {
@@ -744,10 +744,17 @@ const handleLogout = () => {
 
   const fetchClients = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/clients");
+      const token = localStorage.getItem("token");
+
+      const res = await axios.get("http://localhost:5000/api/clients", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
       setClients(res.data);
-    } catch (error) {
-      console.error("Error fetching clients:", error);
+    } catch (err) {
+      console.error("Failed to fetch clients:", err.response?.data || err.message);
     }
   };
 
@@ -756,6 +763,7 @@ const handleLogout = () => {
     fetchDevices();
     fetchMappings();
   }, []);
+
 
   // Sidebar toggles
   const toggleSidebar = () => setIsOpen(!isOpen);
@@ -816,7 +824,7 @@ const handleLogout = () => {
         {/* Profile Dropdown */}
         <div className="position-relative" ref={dropdownRef}>
           <div className="d-flex align-items-center gap-2">
-            <span style={{ fontWeight: "bold", color: "black" }}>Pikachu</span>
+            <span style={{ fontWeight: "bold", color: "black" }}>Psitech</span>
             <button
               className="btn btn-sm btn-light border"
               onClick={toggleDropdown}
@@ -998,9 +1006,11 @@ const handleLogout = () => {
             title="Click to select this summary"
           >
             Enabled: {devices.filter((d) => d.isEnabled).length}
-          </div>
+          </div 
+          >
           {/* Active Devices */}
           <div
+          
             onClick={() =>
               setSelectedActiveDevices((prevSelected) => !prevSelected)
             }
@@ -1046,9 +1056,6 @@ const handleLogout = () => {
     </div>
   </>
 )}
-
-
-
           {activePanel === "clients" && (
             <ClientPanel clients={clients} fetchClients={fetchClients} />
           )}

@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const bcrypt = require("bcrypt");
 require("dotenv").config();
-
+const jwt = require("jsonwebtoken"); 
 const Client = require("../modals/ClientMaster");
 
 // ✅ Optional: support multiple admins (comma-separated in .env)
@@ -34,14 +34,26 @@ router.post("/login", async (req, res) => {
   }
 
   try {
-    // 1️⃣ Admin Check
-    const isAdminUser = admins.includes(username) || username === process.env.DB_USERNAME;
+    // ✅ Debug log to verify .env values
+    console.log("ENV DB_USERNAME:", process.env.DB_USERNAME);
+    console.log("ENV DB_PASSWORD:", process.env.DB_PASSWORD);
 
-    if (isAdminUser && password === process.env.DB_PASSWORD) {
+    // ✅ Admin check (simplified)
+    const isAdmin = username === process.env.DB_USERNAME && password === process.env.DB_PASSWORD;
+
+    if (isAdmin) {
       console.log(`[LOGIN] Admin '${username}' logged in.`);
-      return res.status(200).json({ role: "admin" });
+
+      const token = jwt.sign(
+        { role: "admin", username },
+        process.env.JWT_SECRET,
+        { expiresIn: "1h" }
+      );
+
+      return res.status(200).json({ token, role: "admin", username });
     }
-  
+
+    // ✅ Client check
     const client = await Client.findOne({ email: username });
 
     if (!client) {
@@ -50,13 +62,18 @@ router.post("/login", async (req, res) => {
     }
 
     const isMatch = await bcrypt.compare(password, client.password);
-    console.log("Password match:", isMatch);
-
     if (!isMatch) {
       return res.status(401).json({ error: "Invalid credentials" });
     }
 
+    const token = jwt.sign(
+      { id: client._id, role: "client" },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+
     return res.status(200).json({
+      token,
       role: "client",
       clientId: client._id,
       username: client.username,
@@ -66,6 +83,5 @@ router.post("/login", async (req, res) => {
     console.error("🔥 Login error:", error.stack || error.message);
     return res.status(500).json({ error: "Internal server error" });
   }
-})
-
+});
 module.exports = router;

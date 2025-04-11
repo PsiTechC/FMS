@@ -114,14 +114,14 @@ function DevicePanel({ devices, fetchDevices }) {
   const [deviceName, setDeviceName] = useState("");
   const [deviceDescription, setDeviceDescription] = useState("");
   const [location, setLocation] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
 
 
   const openDeviceModal = () => setShowDeviceModal(true);
   const closeDeviceModal = () => setShowDeviceModal(false);
 
   const handleSaveDevice = async () => {
-    setIsLoading(true);
+    setLoading(true);
 
     const deviceData = {
       name: deviceName,
@@ -141,7 +141,7 @@ function DevicePanel({ devices, fetchDevices }) {
     } catch (error) {
       console.error("Error saving device:", error.response?.data || error.message);
     }
-    setIsLoading(false);
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -193,18 +193,18 @@ function DevicePanel({ devices, fetchDevices }) {
         </table>
       </div>
 
-      {isLoading && (
-  <div style={{ width: "100%", height: "4px", backgroundColor: "#ddd" }}>
-    <div
-      style={{
-        height: "100%",
-        width: "100%",
-        backgroundColor: "#0d6efd",
-        animation: "loadingBar 1.2s linear infinite"
-      }}
-    ></div>
-  </div>
-)}
+      {loading && (
+        <div
+          className="position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center"
+          style={{ backgroundColor: "rgba(0,0,0,0.4)", zIndex: 9999 }}
+        >
+          <div className="spinner-border text-light" role="status">
+            <span className="visually-hidden">Loading...</span>
+          </div>
+        </div>
+      )}
+
+    
 
 
       {/* Modal */}

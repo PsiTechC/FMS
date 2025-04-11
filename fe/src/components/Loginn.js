@@ -12,22 +12,31 @@ function Loginn() {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-
+  
     try {
       const res = await axios.post("http://localhost:5000/api/login", {
         username,
         password,
       });
-
+  
       if (res.status === 200) {
-        const { role, clientId } = res.data;
-
+        const { token, role, clientId, username } = res.data;
+  
+        // ✅ Store auth details
+        localStorage.setItem("token", token);
+        localStorage.setItem("role", role);
+        localStorage.setItem("username", username);
+        if (role === "client") {
+          localStorage.setItem("clientId", clientId);
+        }
+  
+        // Optional: if you're still using cookies
         Cookies.set("auth", role, { expires: 1 });
-
+  
+        // ✅ Redirect based on role
         if (role === "admin") {
           navigate("/dashboard");
         } else if (role === "client") {
-          Cookies.set("clientId", clientId);
           navigate(`/client-dashboard/${clientId}`);
         }
       }
@@ -35,6 +44,7 @@ function Loginn() {
       alert("Invalid credentials");
     }
   };
+  
 
   return (
     <div className="d-flex justify-content-center align-items-center vh-100 bg-light">
