@@ -124,8 +124,12 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEllipsisV } from "@fortawesome/free-solid-svg-icons";
 import "../App.css"
 
+
+
+import { faPen } from '@fortawesome/free-solid-svg-icons';
+
 function ClientDashboard() {
-    const { clientId } = useParams();
+    
     const [deviceData, setDeviceData] = useState({});
     const navigate = useNavigate();
     const [allowedDevices, setAllowedDevices] = useState([]);
@@ -146,13 +150,52 @@ function ClientDashboard() {
     const [isLoading, setIsLoading] = useState(false);
     const [isResettingPassword, setIsResettingPassword] = useState(false);
 
-
     const deviceEditRefs = useRef({});
     const dropdownRef = useRef(null);
-    const [deviceLocations, setDeviceLocations] = useState({});
+    
 
     const [email, setEmail] = useState(""); // auto-filled if available
     const [successMessage, setSuccessMessage] = useState("");
+
+    const { clientId } = useParams();  // Get clientId from URL parameters
+  const [deviceLocations, setDeviceLocations] = useState([]);
+
+  console.log("👁️ clientId value right now:", clientId);
+
+  useEffect(() => {
+    // Fetch mapped devices for the client
+    const fetchMappedDevices = async () => {
+        try {
+          const response = await axios.get(`http://localhost:5000/api/devices/location/client/${clientId}`);
+          
+          // ✅ Log raw API data
+          console.log("📦 API Response:", response.data);
+     
+          // Process the data
+          const locations = response.data.map(device => {
+            const [lat, lng] = device.location.split(",").map(Number);
+            return {
+              deviceID: device.deviceID,
+              lat: lat,
+              lng: lng
+            };
+          });
+      
+          // ✅ Log extracted map locations
+          console.log("📍 Parsed Locations:", locations);
+      
+          setDeviceLocations(locations);
+        } catch (error) {
+          console.error("❌ Error fetching client devices:", error);
+        }
+      };
+      
+    fetchMappedDevices(); // Fetch devices on component mount
+  }, [clientId]);
+
+//   useEffect(() => {
+//     console.log("📍 Updated deviceLocations in state:", deviceLocations);
+//   }, [deviceLocations]);
 
     // const handleSaveDeviceName = async (deviceID) => {
     //     try {
@@ -421,7 +464,7 @@ function ClientDashboard() {
     }, [clientId]);
 
     useEffect(() => {
-        const socket = new WebSocket("ws://localhost:5000/ws/live");
+        const socket = new WebSocket("ws://localhost:5001/ws/live");
       
         socket.onopen = () => console.log("✅ WebSocket connected");
       
@@ -649,13 +692,13 @@ function ClientDashboard() {
 
                             <div style={{ position: "relative" }} ref={(el) => (deviceEditRefs.current[device.deviceID] = el)}>
                             <FontAwesomeIcon
-                                icon={faEllipsisV}
-                                style={{ cursor: "pointer", color: "#ccc", marginRight: "10px"  }}
-                                onClick={() => {
+                            icon={faPen}
+                            style={{ cursor: "pointer", color: "#ccc", marginRight: "10px" }}
+                            onClick={() => {
                                 setEditingDevice(device.deviceID);
-                                
-                                }}
+                            }}
                             />
+
 
                     {editingDevice === device.deviceID && (
                         <div
@@ -663,7 +706,7 @@ function ClientDashboard() {
                             position: "absolute",
                             top: 0,
                             left: "120%", // Opens to the right of the dots icon
-                            backgroundColor: "#1f2a35",
+                            backgroundColor: "#425970",
                             padding: "10px",
                             borderRadius: "6px",
                             boxShadow: "0 0 6px rgba(0,0,0,0.5)",
@@ -672,17 +715,17 @@ function ClientDashboard() {
                         }}
                         >
                         <input
-  type="text"
-  className="form-control form-control-sm mb-2"
-  value={deviceNames[device.deviceID] ?? ""}
-  onChange={(e) => {
-    const newName = e.target.value;
-    setDeviceNames(prev => ({
-      ...prev,
-      [device.deviceID]: newName
-    }));
-  }}
-/>
+                        type="text"
+                        className="form-control form-control-sm mb-2"
+                        value={deviceNames[device.deviceID] ?? ""}
+                        onChange={(e) => {
+                            const newName = e.target.value;
+                            setDeviceNames(prev => ({
+                            ...prev,
+                            [device.deviceID]: newName
+                            }));
+                        }}
+                        />
 
 
                             {/* <input
@@ -822,7 +865,7 @@ function ClientDashboard() {
                             height: "340px",
                         }}
                     >
-                        <MapView devices={deviceData} />
+                        <MapView devices={deviceLocations} />
                     </div>
                 </div>
             </div>

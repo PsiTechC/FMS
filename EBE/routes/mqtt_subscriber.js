@@ -181,7 +181,6 @@ module.exports = {
   }
 };
 
-
 // const mqtt = require("mqtt");
 
 // const BROKER_URL = "mqtt://test.mosquitto.org:1883";

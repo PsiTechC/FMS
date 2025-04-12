@@ -1,8 +1,6 @@
 const express = require("express");
 const router = express.Router();
 const ClientDeviceMap = require("../modals/ClientDeviceMap");
-
-const ClientMaster = require("../modals/ClientMaster");
 const DeviceMaster = require("../modals/DeviceMaster");
 
 router.get("/mappings/client/:clientId", async (req, res) => {
@@ -130,6 +128,39 @@ router.get("/mappings/client/:clientId", async (req, res) => {
   } catch (err) {
     console.error("Error fetching mapped devices:", err);
     res.status(500).json({ error: "Server error, unable to fetch mapped devices." });
+  }
+});
+
+const mongoose = require("mongoose");
+
+router.get("/devices/location/client/:clientId", async (req, res) => {
+  const clientId = req.params.clientId;
+  console.log("Fetching devices for client:", clientId);
+
+  try {
+    // Step 1: Find client device mappings
+    const clientMappings = await ClientDeviceMap.find({ clientId: new mongoose.Types.ObjectId(clientId) });
+    console.log("Client Mappings:", clientMappings);
+
+    // Check if mappings exist
+    if (!clientMappings || clientMappings.length === 0) {
+      console.log("No devices mapped for this client.");
+      return res.status(404).send("No devices mapped for this client.");
+    }
+
+    // Step 2: Extract device IDs
+    const deviceIds = clientMappings.map(mapping => mapping.deviceId);
+    console.log("Device IDs to fetch:", deviceIds);
+
+    // Step 3: Fetch device details from DeviceMaster
+    const devices = await DeviceMaster.find({ _id: { $in: deviceIds } });
+    console.log("Devices found:", devices);
+
+    // Send device data as response
+    res.json(devices);
+  } catch (err) {
+    console.error("Error fetching client devices:", err);
+    res.status(500).send("Error fetching client devices");
   }
 });
 
