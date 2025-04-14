@@ -7,6 +7,8 @@ function MappingPanel({ clients, devices, mappings, fetchMappings }) {
   const [showClientDropdown, setShowClientDropdown] = useState(false);
   const [showDeviceDropdown, setShowDeviceDropdown] = useState(false);
   const [loading, setLoading] = useState(false);
+  const mappedDeviceIds = mappings.map((m) => m.deviceId?._id);
+
 
   const clientDropdownRef = useRef(null);
   const deviceDropdownRef = useRef(null);
@@ -47,6 +49,21 @@ function MappingPanel({ clients, devices, mappings, fetchMappings }) {
     );
   };
 
+  const handleDeleteMapping = async (mappingId) => {
+    if (!window.confirm("Are you sure you want to delete this mapping?")) return;
+    try {
+      setLoading(true);
+      await axios.delete(`http://localhost:5000/api/map-devices/${mappingId}`);
+      alert("Mapping deleted successfully");
+      fetchMappings(); // refresh mappings
+    } catch (error) {
+      console.error("Error deleting mapping:", error.response?.data || error.message);
+      alert("Failed to delete mapping");
+    } finally {
+      setLoading(false);
+    }
+  };
+  
   const handleMapDevice = async () => {
     try {
       await axios.post("http://localhost:5000/api/map-devices", {
@@ -63,9 +80,8 @@ function MappingPanel({ clients, devices, mappings, fetchMappings }) {
     }
   };
   
-
   return (
-    <div className="card shadow-sm p-3 mb-3" style={{ width: "1100px", minHeight: "400px" }}>
+    <div className="card shadow-sm p-3 mb-3" style={{ width: "1100px", minHeight: "500px" }}>
       <h5>Client-Device Mapping</h5>
 
       <div className="row mb-3">
@@ -118,7 +134,10 @@ function MappingPanel({ clients, devices, mappings, fetchMappings }) {
       </button>
       {showDeviceDropdown && (
         <ul className="dropdown-menu show w-100 p-2" style={{ maxHeight: "200px", overflowY: "auto" }}>
-          {devices.map((device) => (
+          {devices
+          .filter((device) => !mappedDeviceIds.includes(device._id)) // 🔥 exclude already mapped
+          .map((device) => (
+
             <li key={device._id} className="form-check mb-1">
               <input
                 className="form-check-input me-2"
@@ -154,11 +173,21 @@ function MappingPanel({ clients, devices, mappings, fetchMappings }) {
         <h6>Mapped Clients & Devices</h6>
         <div style={{ maxHeight: "200px", overflowY: "auto" }}>
           <ul className="list-group">
-            {mappings.map((map) => (
-              <li key={map._id} className="list-group-item">
-                <strong>{map.clientId?.username}</strong> → {map.deviceId?.name}
-              </li>
-            ))}
+          {mappings.map((map) => (
+  <li key={map._id} className="list-group-item d-flex justify-content-between align-items-center">
+    <span>
+      <strong>{map.clientId?.username}</strong> → {map.deviceId?.name}
+    </span>
+    <button
+      className="btn btn-sm btn-danger me-4"
+      style={{ marginRight: "20px" }}
+      onClick={() => handleDeleteMapping(map._id)}
+    >
+      Delete
+    </button>
+  </li>
+))}
+
           </ul>
         </div>
       </div>

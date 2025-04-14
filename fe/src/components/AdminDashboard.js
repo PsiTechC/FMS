@@ -705,6 +705,8 @@ function AdminDashboard() {
   const [clients, setClients] = useState([]);
   const [devices, setDevices] = useState([]);
   const [mappings, setMappings] = useState([]);
+  const [nextDeviceID, setNextDeviceID] = useState("");
+
 
   // New state declarations for selection toggles
 const [selectedClientSummary, setSelectedClientSummary] = useState(false);
@@ -890,7 +892,7 @@ const handleLogout = () => {
             overflow: "hidden",
           }}
         >
-          <Sidebar isOpen={isOpen} setActivePanel={setActivePanel} />
+          <Sidebar isOpen={isOpen} setActivePanel={setActivePanel} setNextDeviceID={setNextDeviceID}/>
         </div>
 
         {/* MAIN CONTENT */}
@@ -1061,7 +1063,7 @@ const handleLogout = () => {
           )}
 
           {activePanel === "devices" && (
-            <DevicePanel devices={devices} fetchDevices={fetchDevices} />
+            <DevicePanel devices={devices} fetchDevices={fetchDevices} nextDeviceID={nextDeviceID}/>
           )}
 
           {activePanel === "deviceMapping" && (

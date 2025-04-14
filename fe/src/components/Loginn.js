@@ -4,7 +4,6 @@ import axios from "axios";
 import Cookies from "js-cookie";
 import "bootstrap/dist/css/bootstrap.min.css";
 
-
 function Loginn() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -45,7 +44,6 @@ function Loginn() {
     }
   };
   
-
   return (
     <div className="d-flex justify-content-center align-items-center vh-100 bg-light">
       <div className="card p-4 shadow-lg" style={{ minWidth: "350px", maxWidth: "400px" }}>

@@ -9,26 +9,26 @@ const crypto = require("crypto");
 // Temporary store for OTPs (can be moved to Redis/DB if needed)
 const otpStore = new Map(); // key: clientId, value: { otp, expiresAt }
 
-// const transporter = nodemailer.createTransport({
-//   service: "gmail",
-//   auth: {
-//     user: process.env.ADMIN_EMAIL,
-//     pass: process.env.ADMIN_EMAIL_PASSWORD,
-//   },
-// });
-
 const transporter = nodemailer.createTransport({
-    host: "mail.eulerianbots.com", // ✅ replace with your actual SMTP host if different
-    port: 587,
-    secure: false, // true for port 465, false for 587
-    auth: {
-      user: process.env.EMAIL_USER,      // e.g., connect@eulerianbots.com
-      pass: process.env.EMAIL_PASS       // from your .env file
-    },
-    tls: {
-      rejectUnauthorized: false // Only if self-signed certificate
-    }
-  });
+  service: "gmail",
+  auth: {
+    user: process.env.ADMIN_EMAIL,
+    pass: process.env.ADMIN_EMAIL_PASSWORD,
+  },
+});
+
+// const transporter = nodemailer.createTransport({
+//     host: "mail.eulerianbots.com", // ✅ replace with your actual SMTP host if different
+//     port: 587,
+//     secure: false, // true for port 465, false for 587
+//     auth: {
+//       user: process.env.EMAIL_USER,      // e.g., connect@eulerianbots.com
+//       pass: process.env.EMAIL_PASS       // from your .env file
+//     },
+//     tls: {
+//       rejectUnauthorized: false // Only if self-signed certificate
+//     }
+//   });
 
   
 
@@ -59,21 +59,21 @@ router.post("/send-otp", async (req, res) => {
 
     otpStore.set(clientId, { otp, expiresAt });
 
-    // await transporter.sendMail({
-    //   from: process.env.ADMIN_EMAIL,
-
-    //   to: client.email,
-    //   subject: "Your OTP for Password Reset",
-    //   text: `Use this OTP to reset your password: ${otp}`,
-    // });
-
     await transporter.sendMail({
-        from: `"FMS Team" <${process.env.EMAIL_USER}>`,
-        to: "recipient@example.com",
-        subject: "Test Email from FMS",
-        text: "Hello! This is a test email from FMS.",
-        html: "<b>Hello!</b> This is a test email from FMS."
-      });
+      from: process.env.ADMIN_EMAIL,
+
+      to: client.email,
+      subject: "Your OTP for Password Reset",
+      text: `Use this OTP to reset your password: ${otp}`,
+    });
+
+    // await transporter.sendMail({
+    //     from: `"FMS Team" <${process.env.ADMIN_EMAIL}>`,
+    //     to: "recipient@example.com",
+    //     subject: "Test Email from FMS",
+    //     text: "Hello! This is a test email from FMS.",
+    //     html: "<b>Hello!</b> This is a test email from FMS."
+    //   });
 
     res.json({ message: "OTP sent" });
   } catch (err) {

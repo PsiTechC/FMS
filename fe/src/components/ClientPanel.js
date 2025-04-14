@@ -588,7 +588,6 @@ await axios.delete(`http://localhost:5000/api/clients/${id}`, {
     }
   };
   
-  
   return (
     <div
       className="card shadow-sm p-3 mb-3"
@@ -668,7 +667,6 @@ await axios.delete(`http://localhost:5000/api/clients/${id}`, {
           </div>
         </div>
       )}
-
 
       {/* Modal for Add User */}
       {showModal && (

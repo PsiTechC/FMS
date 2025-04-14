@@ -3,17 +3,33 @@ const router = express.Router();
 const ClientDeviceMap = require("../modals/ClientDeviceMap");
 const DeviceMaster = require("../modals/DeviceMaster");
 
-router.get("/mappings/client/:clientId", async (req, res) => {
+router.get("/mappings/client/:clientId/locations", async (req, res) => {
   try {
     const clientId = req.params.clientId;
-    const mappings = await ClientDeviceMap.find({ clientId })
-      .populate("deviceId", "deviceID name description") // include useful device fields
-      .populate("clientId", "username"); // optional
 
-    res.status(200).json(mappings);
+    const mappings = await ClientDeviceMap.find({ clientId })
+      .populate("deviceId", "deviceID name location");
+
+    // Filter and transform only needed data
+    const deviceLocations = mappings
+      .filter(m => m.deviceId && m.deviceId.location) // ensure valid location exists
+      .map(m => {
+        const { _id, deviceID, name, location } = m.deviceId;
+        const [lat, lng] = location.split(",").map(coord => parseFloat(coord.trim()));
+
+        return {
+          _id,
+          deviceID,
+          name,
+          lat,
+          lng
+        };
+      });
+
+    res.status(200).json(deviceLocations);
   } catch (error) {
-    console.error("Error fetching client mappings:", error);
-    res.status(500).json({ message: "Error fetching mappings" });
+    console.error("❌ Error fetching client device locations:", error);
+    res.status(500).json({ message: "Error fetching device locations" });
   }
 });
 
@@ -85,51 +101,24 @@ router.post("/map-devices", async (req, res) => {
   }
 });
 
-// router.get("/mappings/client/:clientId", async (req, res) => {
-//   const { clientId } = req.params;
 
-//   try {
-//     // Find mappings for the given clientId and populate the deviceId with name and location.
-//     const mappings = await ClientDeviceMap.find({ clientId })
-//       .populate("deviceId", "deviceID name location") // Populate deviceId with deviceID, name, and location
-//       .select("deviceId"); // Only select the deviceId field from the mappings.
-
-//     // Check if mappings exist for the client
-//     if (!mappings.length) {
-//       return res.status(404).json({ error: "No devices found for this client." });
-//     }
-
-//     // Return the populated device details
-//     res.status(200).json(mappings.map(mapping => mapping.deviceId)); // Return only the populated deviceId fields
-
-//   } catch (err) {
-//     console.error("Error fetching mappings:", err);
-//     res.status(500).json({ error: "Server error, unable to fetch mappings." });
-//   }
-// });
 
 router.get("/mappings/client/:clientId", async (req, res) => {
-  const { clientId } = req.params; // Extract clientId from request parameters
+  const { clientId } = req.params;
 
   try {
-    // Find the mappings of devices for the given clientId and populate device details
     const mappings = await ClientDeviceMap.find({ clientId })
-      .populate("deviceId", "deviceID name location") // Populate deviceId with deviceID, name, and location
-      .select("deviceId"); // Only select the deviceId field from the mappings
+      .populate("deviceId", "deviceID name location")  // populate all 3 fields
+      .select("deviceId");  // only send deviceId wrapper (with populated info)
 
-    // If no mappings are found for this client
-    if (!mappings.length) {
-      return res.status(404).json({ error: "No devices found for this client." });
-    }
-
-    // Send back the populated device details
-    res.status(200).json(mappings.map(mapping => mapping.deviceId)); // Send only the populated deviceId fields
-
+    res.status(200).json(mappings);
   } catch (err) {
-    console.error("Error fetching mapped devices:", err);
+    console.error("❌ Error fetching mapped devices:", err);
     res.status(500).json({ error: "Server error, unable to fetch mapped devices." });
   }
 });
+
+
 
 const mongoose = require("mongoose");
 
@@ -163,5 +152,80 @@ router.get("/devices/location/client/:clientId", async (req, res) => {
     res.status(500).send("Error fetching client devices");
   }
 });
+
+// routes/deviceMappingRoutes.js or wherever your mappings are handled
+router.put("/api/mappings/:mappingId", async (req, res) => {
+  try {
+    const { mappingId } = req.params;
+    const { name, location } = req.body;
+
+    const updated = await ClientDeviceMap.findByIdAndUpdate(
+      mappingId,
+      { name, location },
+      { new: true }
+    );
+
+    if (!updated) {
+      return res.status(404).json({ error: "Mapping not found" });
+    }
+
+    res.status(200).json(updated);
+  } catch (err) {
+    console.error("❌ Failed to update mapping:", err);
+    res.status(500).json({ error: "Update failed" });
+  }
+});
+
+// PUT /api/mappings/:id
+router.put("/mappings/:id", async (req, res) => {
+  const { id } = req.params;
+  const { name, location } = req.body;
+
+  try {
+    // Step 1: Find the mapping by its _id
+    const mapping = await ClientDeviceMap.findById(id);
+    if (!mapping) {
+      console.warn("❌ Mapping not found");
+      return res.status(404).json({ error: "Mapping not found" });
+    }
+
+    console.log("📌 Found mapping:", mapping);
+
+    // Step 2: Use deviceId from mapping to update the device
+    const updatedDevice = await DeviceMaster.findByIdAndUpdate(
+      mapping.deviceId,
+      { $set: { name, location } },
+      { new: true }
+    );
+
+    if (!updatedDevice) {
+      return res.status(404).json({ error: "Device not found" });
+    }
+
+    console.log("✅ Updated device:", updatedDevice);
+    res.status(200).json({ message: "Device updated", updated: updatedDevice });
+
+  } catch (err) {
+    console.error("❌ Error updating device:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// DELETE /api/map-devices/:mappingId
+router.delete("/map-devices/:id", async (req, res) => {
+  try {
+    const deleted = await ClientDeviceMap.findByIdAndDelete(req.params.id);
+    if (!deleted) {
+      return res.status(404).json({ error: "Mapping not found" });
+    }
+    res.json({ message: "Mapping deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting mapping:", error);
+    res.status(500).json({ error: "Failed to delete mapping" });
+  }
+});
+
+
+
 
 module.exports = router;

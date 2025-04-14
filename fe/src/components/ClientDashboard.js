@@ -123,10 +123,11 @@ import axios from 'axios';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEllipsisV } from "@fortawesome/free-solid-svg-icons";
 import "../App.css"
-
-
+import { faExclamationCircle, faTint, faBell } from '@fortawesome/free-solid-svg-icons';
+import useWebSocket from "../hooks/useWebSocket"; // adjust the path as needed
 
 import { faPen } from '@fortawesome/free-solid-svg-icons';
+
 
 function ClientDashboard() {
     
@@ -143,16 +144,34 @@ function ClientDashboard() {
     const [showPasswordModal, setShowPasswordModal] = useState(false);
     const [newPassword, setNewPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
-    const [deviceNames, setDeviceNames] = useState({});
+    // const [deviceNames, setDeviceNames] = useState({});
     const [editingDevice, setEditingDevice] = useState(null); // deviceID being edited
     const [sending, setSending] = useState(false);
     const [isSendingOtp, setIsSendingOtp] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [isResettingPassword, setIsResettingPassword] = useState(false);
+    const [isHovered, setIsHovered] = useState(false);
+    const [mapRefreshTrigger, setMapRefreshTrigger] = useState(Date.now());
+    const [mapDeviceLocations, setMapDeviceLocations] = useState([]);
+    const [alertLogs, setAlertLogs] = useState([]);
+    const [lastSignalTimes, setLastSignalTimes] = useState({});
+const [deviceConnectionStatus, setDeviceConnectionStatus] = useState({});
+
 
     const deviceEditRefs = useRef({});
     const dropdownRef = useRef(null);
-    
+    const latRefs = useRef({});
+const lngRefs = useRef({});
+const deviceNameRefs = useRef({});
+
+const getColor = (level) => {
+  switch (level) {
+    case "red": return "#FF4C4C";       // 🔴
+    case "orange": return "#FFB84C";    // 🟠
+    case "yellow": return "#FFD700";    // 🟡
+    default: return "#BBBBBB";          // ⚪️ fallback
+  }
+};
 
     const [email, setEmail] = useState(""); // auto-filled if available
     const [successMessage, setSuccessMessage] = useState("");
@@ -161,37 +180,109 @@ function ClientDashboard() {
   const [deviceLocations, setDeviceLocations] = useState([]);
 
   console.log("👁️ clientId value right now:", clientId);
+  const handleChangePassword = () => {
+    setOtpSent(false);
+    setOtpError("");
+    setSuccessMessage("");
+    setShowPasswordModal(true);  // 💥 just opens modal
+  };
 
   useEffect(() => {
-    // Fetch mapped devices for the client
-    const fetchMappedDevices = async () => {
-        try {
-          const response = await axios.get(`http://localhost:5000/api/devices/location/client/${clientId}`);
-          
-          // ✅ Log raw API data
-          console.log("📦 API Response:", response.data);
-     
-          // Process the data
-          const locations = response.data.map(device => {
-            const [lat, lng] = device.location.split(",").map(Number);
-            return {
-              deviceID: device.deviceID,
-              lat: lat,
-              lng: lng
-            };
-          });
-      
-          // ✅ Log extracted map locations
-          console.log("📍 Parsed Locations:", locations);
-      
-          setDeviceLocations(locations);
-        } catch (error) {
-          console.error("❌ Error fetching client devices:", error);
-        }
+    const sendOtp = async () => {
+      try {
+        setIsLoading(true); // Show spinner
+        const res = await axios.post("http://localhost:5000/api/send-otp", {
+          clientId,
+        });
+        setOtpSent(true);
+        setOtpError("");
+        setSuccessMessage("OTP sent to your email.");
+      } catch (err) {
+        console.error("Failed to send OTP:", err);
+        setOtpError("Failed to send OTP. Try again later.");
+      } finally {
+        setIsLoading(false); // Hide spinner
+      }
+    };
+  
+    if (showPasswordModal) {
+      sendOtp();
+    }
+  }, [showPasswordModal, clientId]);
+
+  useEffect(() => {
+    let socket;
+    let reconnectTimer;
+  
+    const connectWebSocket = () => {
+      socket = new WebSocket("ws://localhost:5000/ws/live");
+  
+      socket.onopen = () => {
+        console.log("✅ WebSocket connected");
       };
+  
+      socket.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        console.log("📦 Received WebSocket data:", data);
+  
+        // Handle your data update logic here, e.g.:
+        // updateDeviceData(data);
+      };
+  
+      socket.onerror = (error) => {
+        console.error("❌ WebSocket error:", error);
+        socket.close();
+      };
+  
+      socket.onclose = () => {
+        console.warn("⚠️ WebSocket disconnected. Reconnecting in 3 seconds...");
+        reconnectTimer = setTimeout(connectWebSocket, 3000);
+      };
+    };
+  
+    connectWebSocket();
+  
+    return () => {
+      clearTimeout(reconnectTimer);
+      if (socket && socket.readyState === WebSocket.OPEN) {
+        socket.close();
+      }
+    };
+  }, []);
+  
+  
+  
+
+//   useEffect(() => {
+//     // Fetch mapped devices for the client
+//     const fetchMappedDevices = async () => {
+//         try {
+//           const response = await axios.get(`http://localhost:5000/api/devices/location/client/${clientId}`);
+          
+//           // ✅ Log raw API data
+//           console.log("📦 API Response:", response.data);
+     
+//           // Process the data
+//           const locations = response.data.map(device => {
+//             const [lat, lng] = device.location.split(",").map(Number);
+//             return {
+//               deviceID: device.deviceID,
+//               lat: lat,
+//               lng: lng
+//             };
+//           });
       
-    fetchMappedDevices(); // Fetch devices on component mount
-  }, [clientId]);
+//           // ✅ Log extracted map locations
+//           console.log("📍 Parsed Locations:", locations);
+      
+//           setDeviceLocations(locations);
+//         } catch (error) {
+//           console.error("❌ Error fetching client devices:", error);
+//         }
+//       };
+      
+//     fetchMappedDevices(); // Fetch devices on component mount
+//   }, [clientId]);
 
 //   useEffect(() => {
 //     console.log("📍 Updated deviceLocations in state:", deviceLocations);
@@ -213,21 +304,63 @@ function ClientDashboard() {
     //   };
 
     const handleSaveDeviceName = async (deviceID) => {
+        console.log("🟢 Save clicked for deviceID:", deviceID);
+        console.log("📦 mappingIds object:", mappingIds);
+      
         const mappingId = mappingIds[deviceID];
-        if (!mappingId) return;
+        console.log("📌 Mapping ID retrieved:", mappingId);
+      
+        if (!mappingId) {
+          console.warn("❌ No mappingId found for deviceID:", deviceID);
+          return;
+        }
+      
+        const devname = deviceNameRefs.current[deviceID]?.value?.trim() || "";
+        const lat = latRefs.current[deviceID]?.value?.trim() || "";
+        const lng = lngRefs.current[deviceID]?.value?.trim() || "";
+        const locationString = `${lat},${lng}`;
+      
+        console.log("📤 Sending API call...");
+        console.log({
+          name: devname,
+          location: locationString
+        });
       
         try {
           await axios.put(`http://localhost:5000/api/mappings/${mappingId}`, {
-            name: deviceNames[deviceID],
-            location: deviceLocations[deviceID],
+            name: devname,
+            location: locationString,
           });
       
-          console.log("✅ Saved updated name and location");
+          // ✅ Update local UI state to reflect new name
+          setDeviceData((prev) => ({
+            ...prev,
+            [deviceID]: {
+              ...prev[deviceID],
+              deviceId: {
+                ...prev[deviceID].deviceId,
+                name: devname,
+                location: locationString
+              }
+            }
+          }));
+
+          setDeviceLocations((prev) => ({
+            ...prev,
+            [deviceID]: locationString
+          }));
+
           setEditingDevice(null);
+
+      
+          console.log("✅ Saved updated name and location!");
         } catch (err) {
           console.error("❌ Failed to update mapping:", err);
         }
       };
+      
+      
+      
 
       const handleResetPassword = async () => {
         if (newPassword !== confirmPassword) {
@@ -270,51 +403,6 @@ function ClientDashboard() {
         Cookies.remove("clientId");
         navigate("/");
     };
-
-    useEffect(() => {
-        const sendOtp = async () => {
-          try {
-            const res = await axios.post("http://localhost:5000/api/send-otp", {
-              clientId,
-            });
-            setOtpSent(true);
-            setOtpError("");
-            setSuccessMessage("OTP sent to your email.");
-          } catch (err) {
-            console.error("Failed to send OTP:", err);
-            setOtpError("Failed to send OTP. Try again later.");
-          }
-        };
-      
-        if (showPasswordModal) {
-          sendOtp();  // ✉️ Send OTP as soon as modal is shown
-        }
-      }, [showPasswordModal, clientId]);
-      
-      const handleSaveDeviceLocation = async (deviceID) => {
-        try {
-          await axios.put("http://localhost:5000/api/devices/update-location", {
-            deviceID,
-            location: deviceLocations[deviceID], // Send updated location
-          });
-      
-          // Update state to reflect changes in UI
-          setDeviceLocations(prev => ({
-            ...prev,
-            [deviceID]: deviceLocations[deviceID], // Update device location in state
-          }));
-      
-          // Show success message or notification if needed
-          console.log("Device location updated successfully!");
-        } catch (error) {
-          console.error("Error updating device location:", error);
-        }
-      };
-
-
-      
-    
-
     useEffect(() => {
         const handleClickOutside = (event) => {
           if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -327,7 +415,6 @@ function ClientDashboard() {
           document.removeEventListener("mousedown", handleClickOutside);
         };
       }, []);
-      
 
     // useEffect(() => {
     //     const fetchMappedDevices = async () => {
@@ -374,19 +461,36 @@ function ClientDashboard() {
         const fetchMappedDevices = async () => {
           try {
             const res = await axios.get(`http://localhost:5000/api/mappings/client/${clientId}`);
-            const nameMap = {};
-            const locationMap = {};
+            console.log("✅ Raw response from API:", res.data);
+      
             const idMap = {};
+            const latitudeMap = {};
+            const longitudeMap = {};
+            const deviceStatusMap = {};
             const prefilledData = {};
       
-            res.data.forEach(({ _id, name, location, deviceId }) => {
-              const deviceID = deviceId.deviceID;
-              nameMap[deviceID] = name?.trim() ? name : "";
-              locationMap[deviceID] = location || "";
-              idMap[deviceID] = _id; // Mapping ID for future updates
+            res.data.forEach(({ _id, deviceId, index }) => {
+                const deviceID = deviceId.deviceID;
+                const name = deviceId.name;
+              
+              const location = deviceId.location;
+      
+              idMap[deviceID] = _id;
+              deviceStatusMap[deviceID] = 'disconnected';
+      
+              if (location) {
+                const [lat, lng] = location.split(",").map(val => val.trim());
+                latitudeMap[deviceID] = lat;
+                longitudeMap[deviceID] = lng;
+              } else {
+                latitudeMap[deviceID] = "";
+                longitudeMap[deviceID] = "";
+              }
       
               prefilledData[deviceID] = {
                 deviceID,
+                deviceId,
+                name,
                 waterLevel: 0,
                 distance: 0,
                 batteryVoltage: 0,
@@ -401,10 +505,17 @@ function ClientDashboard() {
             });
       
             setAllowedDevices(res.data.map(d => d.deviceId.deviceID));
-            setDeviceNames(nameMap);
-            setDeviceLocations(locationMap);
-            setMappingIds(idMap); // ✅ New state
+            setMappingIds(idMap);
+            setDeviceConnectionStatus(deviceStatusMap);
             setDeviceData(prefilledData);
+      
+            setDeviceLocations(prev => ({
+              ...prev,
+              ...Object.keys(latitudeMap).reduce((acc, deviceID) => {
+                acc[deviceID] = `${latitudeMap[deviceID]},${longitudeMap[deviceID]}`;
+                return acc;
+              }, {})
+            }));
           } catch (err) {
             console.error("❌ Failed to fetch mapped devices:", err);
           }
@@ -412,6 +523,8 @@ function ClientDashboard() {
       
         fetchMappedDevices();
       }, [clientId]);
+      
+      
       
     useEffect(() => {
         const handleOutsideClick = (event) => {
@@ -430,27 +543,25 @@ function ClientDashboard() {
         };
       }, [editingDevice]);
 
-      const handleChangePassword = async () => {
-        setIsLoading(true);
-        if (isSendingOtp) return; // 🚫 prevent re-entry
+    //   const handleChangePassword = async () => {
+    //     setIsLoading(true);
+    //     if (isSendingOtp) return; // 🚫 prevent re-entry
       
-        setIsSendingOtp(true);
-        try {
-          const res = await axios.post("http://localhost:5000/api/send-otp", { clientId });
-          setOtpSent(true);
-          setOtpError("");
-          setShowPasswordModal(true);
-        } catch (err) {
-          console.error("OTP send error:", err);
-          setOtpError("Failed to send OTP. Try again later.");
-        } finally {
-          setIsSendingOtp(false); // reset flag
-        }
-        setIsLoading(false);
-      };
+    //     setIsSendingOtp(true);
+    //     try {
+    //       const res = await axios.post("http://localhost:5000/api/send-otp", { clientId });
+    //       setOtpSent(true);
+    //       setOtpError("");
+    //       setShowPasswordModal(true);
+    //     } catch (err) {
+    //       console.error("OTP send error:", err);
+    //       setOtpError("Failed to send OTP. Try again later.");
+    //     } finally {
+    //       setIsSendingOtp(false); // reset flag
+    //     }
+    //     setIsLoading(false);
+    //   };
       
-      
-
     useEffect(() => {
         const fetchClientName = async () => {
             try {
@@ -464,36 +575,118 @@ function ClientDashboard() {
     }, [clientId]);
 
     useEffect(() => {
-        const socket = new WebSocket("ws://localhost:5001/ws/live");
-      
-        socket.onopen = () => console.log("✅ WebSocket connected");
-      
+      let socket;
+      let reconnectTimer;
+    
+      const connect = () => {
+        socket = new WebSocket("ws://localhost:5000/ws/live");
+    
+        socket.onopen = () => {
+          console.log("✅ WebSocket connected");
+        };
+    
         socket.onmessage = (event) => {
           const data = JSON.parse(event.data);
-          const { deviceID, waterLevel, receivedAt } = data;
-      
+          console.log("📦 Received WebSocket data:", data);
+          const { deviceID, waterLevel, distance, temp, hum, receivedAt } = data;
+    
           if (!allowedDevices.includes(deviceID)) return;
-      
+    
+          const timestamp = new Date(receivedAt || Date.now());
+    
+          setLastSignalTimes(prev => ({
+            ...prev,
+            [deviceID]: Date.now()
+          }));
+    
+          setDeviceConnectionStatus(prev => {
+            const wasDisconnected = prev[deviceID] === 'disconnected';
+            if (wasDisconnected) {
+              return { ...prev, [deviceID]: 'back-online' };
+            }
+            return prev;
+          });
+    
+          let alert = "none";
+          if (waterLevel >= 50) alert = "red";
+          else if (waterLevel >= 40) alert = "orange";
+          else if (waterLevel >= 30) alert = "yellow";
+    
+          const alertLog = {
+            deviceID,
+            level: alert,
+            message: `Water level is ${alert} alert: ${waterLevel} cm`,
+            distance,
+            time: timestamp
+          };
+    
+          setAlertLogs(prev => {
+            const existingIndex = prev.findIndex(log => log.deviceID === alertLog.deviceID);
+            if (existingIndex !== -1) {
+              const updated = [...prev];
+              updated[existingIndex] = alertLog;
+              return updated;
+            }
+            return [alertLog, ...prev].slice(0, 10);
+          });
+    
           setDeviceData((prev) => {
             const history = prev[deviceID]?.history || [];
-      
+            const deviceId = prev[deviceID]?.deviceId;
             return {
               ...prev,
               [deviceID]: {
                 ...data,
-                history: [...history.slice(-19), { time: receivedAt, value: waterLevel }]
+                deviceID,
+                alert,
+                deviceId,
+                history: [...history.slice(-19), { time: timestamp.toISOString(), value: waterLevel }]
               }
             };
           });
         };
-      
-        socket.onerror = (error) => console.error("WebSocket error:", error);
-        socket.onclose = () => console.log("WebSocket connection closed");
-      
-        // ✅ Clean up socket on component unmount
-        return () => socket.close();
-      }, [allowedDevices]);
-      
+    
+        socket.onerror = (error) => {
+          console.error("❌ WebSocket error:", error);
+          socket.close();
+        };
+    
+        socket.onclose = () => {
+          console.warn("⚠️ WebSocket connection closed. Retrying in 3 seconds...");
+          reconnectTimer = setTimeout(connect, 3000); // auto-reconnect
+        };
+      };
+    
+      connect(); // initial connect
+    
+      return () => {
+        clearTimeout(reconnectTimer);
+        if (socket && socket.readyState === WebSocket.OPEN) {
+          socket.close();
+        }
+      };
+    }, [allowedDevices]);
+    
+    useEffect(() => {
+      const interval = setInterval(() => {
+        const now = Date.now();
+    
+        Object.entries(lastSignalTimes).forEach(([deviceID, lastTime]) => {
+          const diff = now - lastTime;
+    
+          if (diff > 10 * 60 * 1000) {
+            // ❌ Disconnected
+            setDeviceConnectionStatus(prev => ({
+              ...prev,
+              [deviceID]: 'disconnected'
+            }));
+          }
+        });
+      }, 60 * 1000); // every minute
+    
+      return () => clearInterval(interval);
+    }, [lastSignalTimes]);
+    
 
     const getAlertClass = (alert) => {
         switch (alert) {
@@ -585,7 +778,7 @@ function ClientDashboard() {
                 <div className="d-flex align-items-center " style={{ gap:"25px" }}>
 
                 <img
-                    src="/EulerianBots.jpeg"
+                    src="/Eulerian_Bots.jpeg"
                     alt="Logo"
                     style={{
                     width: "100px",
@@ -667,12 +860,8 @@ function ClientDashboard() {
 
                             <div className="d-flex align-items-center gap-3 mb-2">
                             <h5 className="mb-0">
-                            {deviceNames[device.deviceID]?.trim()
-                                ? deviceNames[device.deviceID]
-                                : device.deviceID}
-                            </h5>
-
-
+                            {device.deviceId?.name || device.deviceID}
+                          </h5>
 
                                 {getSignalBars(device.sigDbm)}
                                 <span className="small ">{device.sigDbm}dBm</span>
@@ -693,9 +882,14 @@ function ClientDashboard() {
                             <div style={{ position: "relative" }} ref={(el) => (deviceEditRefs.current[device.deviceID] = el)}>
                             <FontAwesomeIcon
                             icon={faPen}
-                            style={{ cursor: "pointer", color: "#ccc", marginRight: "10px" }}
+                            className="edit-icon"
+                            
                             onClick={() => {
-                                setEditingDevice(device.deviceID);
+                              if (editingDevice === device.deviceID) {
+                                setEditingDevice(null);  // 🧹 close if already open
+                              } else {
+                                setEditingDevice(device.deviceID);  // 🖊️ open editor
+                              }
                             }}
                             />
 
@@ -703,6 +897,7 @@ function ClientDashboard() {
                     {editingDevice === device.deviceID && (
                         <div
                         style={{
+                            zIndex: 999,
                             position: "absolute",
                             top: 0,
                             left: "120%", // Opens to the right of the dots icon
@@ -717,46 +912,63 @@ function ClientDashboard() {
                         <input
                         type="text"
                         className="form-control form-control-sm mb-2"
-                        value={deviceNames[device.deviceID] ?? ""}
-                        onChange={(e) => {
-                            const newName = e.target.value;
-                            setDeviceNames(prev => ({
-                            ...prev,
-                            [device.deviceID]: newName
-                            }));
-                        }}
+                        placeholder="Device Name"
+                        defaultValue={device.deviceId?.name || ""}
+                        ref={(el) => (deviceNameRefs.current[device.deviceID] = el)}
                         />
 
 
-                            {/* <input
-                            type="text"
-                            className="form-control form-control-sm mb-2"
-                            value={device.deviceID || ""}
-                            onChange={(e) => {
-                                const newName = e.target.value;
-                                setDeviceNames(prev => ({
+                        <div className="d-flex justify-content-between mb-2" style={{ gap: "8px" }}>
+                          {/* Latitude */}
+                          <input
+                          type="number"
+                          step="any"
+                          min="-90"
+                          max="90"
+                          className="form-control form-control-sm"
+                          placeholder="Lat."
+                          ref={(el) => (latRefs.current[device.deviceID] = el)}
+                          style={{ appearance: "none", MozAppearance: "textfield" }}
+                          value={parseFloat(deviceLocations[device.deviceID]?.split(",")[0]) || ""}
+                          onChange={(e) => {
+                            const newLat = e.target.value;
+                            const [, lng = ""] = deviceLocations[device.deviceID]?.split(",") || ["", ""];
+                            if (/^-?\d*\.?\d*$/.test(newLat)) {
+                              setDeviceLocations(prev => ({
                                 ...prev,
-                                [device.deviceID]: newName
+                                [device.deviceID]: `${newLat},${lng}`
+                              }));
+                            }
+                          }}
+                        />
+
+
+                          {/* Longitude */}
+                          <input
+                            type="number"
+                            step="any"
+                            min="-180"
+                            max="180"
+                            className="form-control form-control-sm"
+                            placeholder="Lon."
+                            ref={(el) => (lngRefs.current[device.deviceID] = el)}
+                            value={parseFloat(deviceLocations[device.deviceID]?.split(",")[1]) || ""}
+                            onChange={(e) => {
+                              const newLng = e.target.value;
+                              const [lat = ""] = deviceLocations[device.deviceID]?.split(",") || ["", ""];
+                              if (/^-?\d*\.?\d*$/.test(newLng)) {
+                                setDeviceLocations(prev => ({
+                                  ...prev,
+                                  [device.deviceID]: `${lat},${newLng}`
                                 }));
+                              }
                             }}
-                            /> */}
-
-<input
-      type="text"
-      className="form-control form-control-sm mb-2"
-      value={deviceLocations[device.deviceID] || ""}
-      onChange={(e) => {
-        const newLocation = e.target.value;
-        setDeviceLocations(prev => ({
-          ...prev,
-          [device.deviceID]: newLocation,
-        }));
-      }}
-    />
-
+                          />
+                        </div>
                         <button
                             className="btn btn-sm btn-success w-100"
                             onClick={() => handleSaveDeviceName(device.deviceID)}
+
                         >
                             Save
                         </button>
@@ -862,11 +1074,229 @@ function ClientDashboard() {
                             borderRadius: "12px",
                             overflow: "hidden",
                             width: "220%",
-                            height: "340px",
+                            height: "300px",
                         }}
                     >
                         <MapView devices={deviceLocations} />
+
                     </div>
+                    <div
+  style={{
+    backgroundColor: "#151C23",
+    color: "white",
+    borderRadius: "12px",
+    width: "220%",
+    maxWidth: "220%%",
+    height: "auto",
+    padding: "20px",
+    boxSizing: "border-box",
+    margin: 0,  // <-- not auto!
+    display: "block" // <-- ensure block alignment
+  }}
+>
+  <div style={{ width: "100%", display: "block" }}>
+    <h3 className="fw-bold mb-3 text-white">Alerts</h3>
+
+    {/* --- First Heading: Water Level Alerts --- */}
+    <div className="d-flex align-items-start mb-3">
+      <FontAwesomeIcon
+        icon={faExclamationCircle}
+        className="me-3 mt-1 text-danger"
+        size="lg"
+      />
+      <div>
+        <div style={{ fontWeight: "bold", color: "#ffffff" }}>
+          Water level exceeds threshold
+        </div>
+      </div>
+    </div>
+
+    {/* --- Alert Cards Section (scrollable row) --- */}
+    {/* --- Alert Cards Section (scrollable row) --- */}
+<div
+  className="p-3 rounded-3 alert-scrollbar"
+  style={{
+    width: "100%",
+    backgroundColor: "#101419",
+    color: "#ffffff",
+    height: "130px",
+    overflowY: "hidden",
+    overflowX: "auto",
+    paddingRight: "8px",
+    whiteSpace: "nowrap",
+    marginBottom: "20px",
+    scrollbarWidth: "thin",      // optional
+    msOverflowStyle: "none",     // optional
+    scrollBehavior: "smooth"
+  }}
+>
+  <div
+    className="d-flex"
+    style={{
+      gap: "10px",
+      height: "90px",
+      width: "max-content",       // ✅ Key fix: grows with content
+      flexWrap: "nowrap"
+    }}
+  >
+    {Object.values(deviceData)
+      .filter((d) => ["red", "orange", "yellow"].includes(d.alert))
+      .map((d, index) => (
+        <div
+          key={index}
+          style={{
+            minWidth: "220px",
+            backgroundColor: "#181f27",
+            borderRadius: "10px",
+            padding: "12px",
+            display: "inline-block"
+          }}
+        >
+          <div
+            style={{
+              fontFamily: "monospace",
+              fontWeight: "bold",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between"
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <span
+                style={{
+                  fontSize: "1.2rem",
+                  color:
+                    d.alert === "red"
+                      ? "red"
+                      : d.alert === "orange"
+                      ? "orange"
+                      : "yellow"
+                }}
+              >
+                ●
+              </span>
+              <span style={{ color: "#ffffff" }}>
+                {d.deviceId?.name || d.deviceID}
+              </span>
+            </div>
+            <div style={{ fontSize: "0.9rem", color: "#bbbbbb" }}>
+              {new Date().toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit"
+              })}
+            </div>
+          </div>
+
+          <ul style={{ paddingLeft: "20px", marginTop: "6px" }}>
+            <li>
+              <strong>{d.waterLevel} cm</strong>{" "}
+              <strong>({d.distance} cm left)</strong>
+            </li>
+          </ul>
+        </div>
+      ))}
+  </div>
+</div>
+
+
+    {/* --- Second Heading: Device Connections --- */}
+    <div className="d-flex align-items-start mb-3">
+  <FontAwesomeIcon
+    icon={faTint}
+    className="me-3 mt-1 text-primary"
+    size="lg"
+  />
+  <div>
+    <div style={{ fontWeight: 'bold', color: '#ffffff' }}>
+      Device Connections
+    </div>
+  </div>
+</div>
+
+<div
+  className="p-3 rounded-3 alert-scrollbar"
+  style={{
+    width: "100%",
+    maxWidth: "100%",
+    backgroundColor: "#101419",
+    color: '#ffffff',
+    height: "120px",
+    overflowY: "hidden",
+    overflowX: "auto",
+    paddingRight: "8px",
+    whiteSpace: "nowrap"
+  }}
+>
+  <div className="d-flex" style={{ gap: "10px", height: "80px" }}>
+    {Object.entries(deviceConnectionStatus).map(([deviceID, status], index) => {
+      const deviceName = deviceData[deviceID]?.deviceId?.name || deviceID;
+      let message = "";
+      let color = "";
+
+      if (status === "disconnected") {
+        message = `${deviceName} Disconnected`;
+        color = "red";
+      } else if (status === "back-online") {
+        message = `${deviceName} Back Online`;
+        color = "lightgreen";
+      }
+
+      // Device Error: temp & hum = 998
+      const isError = deviceData[deviceID]?.temp === 998 && deviceData[deviceID]?.hum === 998;
+      if (isError) {
+        message = `${deviceName} Error`;
+        color = "orange";
+      }
+
+      if (!message) return null;
+
+      return (
+        <div
+          key={index}
+          style={{
+            minWidth: "220px",
+            backgroundColor: "#181f27",
+            borderRadius: "10px",
+            padding: "12px",
+            display: "inline-block"
+          }}
+        >
+          <div
+            style={{
+              fontFamily: "monospace",
+              fontWeight: "bold",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between"
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <span style={{ fontSize: "1.2rem", color: "#FFFFFF" }}>●</span>
+              <div style={{ paddingLeft: "6px", marginTop: "6px", fontSize: "0.9rem", color: "#dddddd" }}>
+            {message}
+          </div>
+            </div>
+            
+          </div>
+          <div style={{ fontSize: "0.9rem", color: "#bbbbbb", fontWeight:"bold", marginLeft:"24px" }}>
+              {new Date().toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit"
+              })}
+            </div>
+          
+        </div>
+      );
+    })}
+  </div>
+</div>
+  </div>
+</div>
+
+
+
+
+                    
                 </div>
             </div>
 

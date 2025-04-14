@@ -125,7 +125,7 @@
 // });
 
 
-// mqtt_subscriber.js
+//mqtt_subscriber.js-------------------------------------------------
 const mqtt = require("mqtt");
 
 const BROKER_URL = "mqtt://test.mosquitto.org:1883";
@@ -181,6 +181,8 @@ module.exports = {
   }
 };
 
+//---------------------------------
+
 // const mqtt = require("mqtt");
 
 // const BROKER_URL = "mqtt://test.mosquitto.org:1883";
@@ -234,4 +236,67 @@ module.exports = {
 // client.on("error", (err) => {
 //   console.error("Error with MQTT connection:", err);
 // });
+
+
+//----------------------------------------------------------------------------
+
+// const TOPIC_1 = "Device1/waterDevice1";
+// const TOPIC_2 = "Device2/waterDevice2";
+// const TOPIC_3 = "Device3/waterDevice3";
+// const TOPIC_4 = "Device4/waterDevice4";
+// const TOPIC_5 = "Device5/waterDevice5";
+// const TOPIC_6 = "Device6/waterDevice6";
+
+// let latestData = {};
+// let broadcastCallback = null;
+
+// // Extended list of specific device IDs
+// const devices = [
+//   { deviceID: "FMS00001", topic: TOPIC_1 },
+//   { deviceID: "FMS00002", topic: TOPIC_2 },
+//   { deviceID: "FMS00003", topic: TOPIC_3 },
+//   { deviceID: "FMS00004", topic: TOPIC_4 },
+//   { deviceID: "FMS00005", topic: TOPIC_5 },
+//   { deviceID: "FMS00006", topic: TOPIC_6 }
+// ];
+
+// // Generate random data for a given device
+// function generateRandomData(deviceID, topic) {
+//   return {
+//     deviceID,
+//     topic,
+//     distance: +(Math.random() * 100).toFixed(2),          // cm
+//     waterLevel: +(Math.random() * 200).toFixed(2),        // cm
+//     batteryVoltage: +(Math.random() * 12 + 1).toFixed(2), // volts
+//     solarVoltage: +(Math.random() * 20 + 5).toFixed(2),   // volts
+//     temp: +(Math.random() * 35 + 10).toFixed(2),          // °C
+//     hum: +(Math.random() * 100).toFixed(2),               // %
+//     receivedAt: new Date().toISOString()
+//   };
+// }
+
+// // Simulate incoming data every 10 seconds
+// setInterval(() => {
+//   devices.forEach(({ deviceID, topic }) => {
+//     const data = generateRandomData(deviceID, topic);
+
+//     latestData[deviceID] = data;
+//     console.log(`📡 Fake update for ${deviceID}`, data);
+
+//     if (broadcastCallback) {
+//       broadcastCallback(data);
+//     }
+//   });
+// }, 10000);
+
+// // Export API
+// module.exports = {
+//   getLatestDeviceData: () => latestData,
+//   setBroadcastCallback: (cb) => {
+//     broadcastCallback = cb;
+//   }
+// };
+
+
+
 
