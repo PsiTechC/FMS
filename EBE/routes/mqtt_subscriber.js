@@ -246,6 +246,9 @@ const TOPIC_3 = "Device3/waterDevice3";
 const TOPIC_4 = "Device4/waterDevice4";
 const TOPIC_5 = "Device5/waterDevice5";
 const TOPIC_6 = "Device6/waterDevice6";
+const TOPIC_7 = "Device7/waterDevice7";
+const TOPIC_8 = "Device8/waterDevice8";
+const TOPIC_9 = "Device9/waterDevice9";
 
 let latestData = {};
 let broadcastCallback = null;
@@ -257,7 +260,10 @@ const devices = [
   { deviceID: "FMS00003", topic: TOPIC_3 },
   { deviceID: "FMS00004", topic: TOPIC_4 },
   { deviceID: "FMS00005", topic: TOPIC_5 },
-  { deviceID: "FMS00006", topic: TOPIC_6 }
+  { deviceID: "FMS00006", topic: TOPIC_6 },
+  { deviceID: "FMS00007", topic: TOPIC_7 },
+  { deviceID: "FMS00008", topic: TOPIC_8 },
+  { deviceID: "FMS00009", topic: TOPIC_9 }
 ];
 
 // Generate random data for a given device
@@ -296,7 +302,3 @@ module.exports = {
     broadcastCallback = cb;
   }
 };
-
-
-
-
