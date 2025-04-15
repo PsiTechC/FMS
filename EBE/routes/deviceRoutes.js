@@ -66,5 +66,33 @@ router.put("/devices/:deviceID", async (req, res) => {
   }
 });
 
+// router.get("/devices/client/:clientId", async (req, res) => {
+//   const clientId = req.params.clientId;
+
+//   try {
+//     // Fetch the devices mapped to the client
+//     const clientDevices = await ClientDeviceMap.findOne({ clientId });
+
+//     if (!clientDevices) {
+//       return res.status(404).send("Client not found or no devices mapped.");
+//     }
+
+//     // Get the device IDs of the mapped devices
+//     const deviceIds = clientDevices.devices.map(device => device.deviceID);
+
+//     // Fetch the device details from DeviceMaster based on the mapped device IDs
+//     const devices = await DeviceMaster.find({ deviceID: { $in: deviceIds } });
+
+//     // Send the devices as a response
+//     res.json(devices);
+//   } catch (err) {
+//     console.error("Error fetching client devices:", err);
+//     res.status(500).send("Error fetching client devices");
+//   }
+// });
+
+
+
+
 
 module.exports = router;

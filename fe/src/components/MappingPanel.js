@@ -81,7 +81,7 @@ function MappingPanel({ clients, devices, mappings, fetchMappings }) {
   };
   
   return (
-    <div className="card shadow-sm p-3 mb-3" style={{ width: "1100px", minHeight: "500px" }}>
+    <div className="card shadow-sm p-3 mb-3" style={{ width: "1100px", minHeight: "400px" }}>
       <h5>Client-Device Mapping</h5>
 
       <div className="row mb-3">

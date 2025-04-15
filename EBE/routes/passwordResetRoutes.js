@@ -9,12 +9,23 @@ const crypto = require("crypto");
 // Temporary store for OTPs (can be moved to Redis/DB if needed)
 const otpStore = new Map(); // key: clientId, value: { otp, expiresAt }
 
+// const transporter = nodemailer.createTransport({
+//   service: "gmail",
+//   auth: {
+//     user: process.env.ADMIN_EMAIL,
+//     pass: process.env.ADMIN_EMAIL_PASSWORD,
+//   },
+// });
+
 const transporter = nodemailer.createTransport({
-  service: "gmail",
+  host: "mail.means.co.in",
+  port: 587,
+  secure: false,           // STARTTLS
   auth: {
-    user: process.env.ADMIN_EMAIL,
-    pass: process.env.ADMIN_EMAIL_PASSWORD,
+    user: process.env.OF_USER,
+    pass: process.env.OF_PASS,
   },
+  tls: { rejectUnauthorized: false },
 });
 
 // const transporter = nodemailer.createTransport({
@@ -60,7 +71,7 @@ router.post("/send-otp", async (req, res) => {
     otpStore.set(clientId, { otp, expiresAt });
 
     await transporter.sendMail({
-      from: process.env.ADMIN_EMAIL,
+      from: process.env.OF_USER,
 
       to: client.email,
       subject: "Your OTP for Password Reset",

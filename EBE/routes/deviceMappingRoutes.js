@@ -26,6 +26,8 @@ router.get("/mappings/client/:clientId/locations", async (req, res) => {
         };
       });
 
+      
+
     res.status(200).json(deviceLocations);
   } catch (error) {
     console.error("❌ Error fetching client device locations:", error);
@@ -101,7 +103,28 @@ router.post("/map-devices", async (req, res) => {
   }
 });
 
+// router.get("/mappings/client/:clientId", async (req, res) => {
+//   const { clientId } = req.params;
 
+//   try {
+//     // Find mappings for the given clientId and populate the deviceId with name and location.
+//     const mappings = await ClientDeviceMap.find({ clientId })
+//       .populate("deviceId", "deviceID name location") // Populate deviceId with deviceID, name, and location
+//       .select("deviceId"); // Only select the deviceId field from the mappings.
+
+//     // Check if mappings exist for the client
+//     if (!mappings.length) {
+//       return res.status(404).json({ error: "No devices found for this client." });
+//     }
+
+//     // Return the populated device details
+//     res.status(200).json(mappings.map(mapping => mapping.deviceId)); // Return only the populated deviceId fields
+
+//   } catch (err) {
+//     console.error("Error fetching mappings:", err);
+//     res.status(500).json({ error: "Server error, unable to fetch mappings." });
+//   }
+// });
 
 router.get("/mappings/client/:clientId", async (req, res) => {
   const { clientId } = req.params;
@@ -210,21 +233,6 @@ router.put("/mappings/:id", async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 });
-
-// DELETE /api/map-devices/:mappingId
-router.delete("/map-devices/:id", async (req, res) => {
-  try {
-    const deleted = await ClientDeviceMap.findByIdAndDelete(req.params.id);
-    if (!deleted) {
-      return res.status(404).json({ error: "Mapping not found" });
-    }
-    res.json({ message: "Mapping deleted successfully" });
-  } catch (error) {
-    console.error("Error deleting mapping:", error);
-    res.status(500).json({ error: "Failed to delete mapping" });
-  }
-});
-
 
 
 

@@ -90,7 +90,6 @@ app.use("/api", require("./routes/clientRoutes"));
 app.use("/api", require("./routes/deviceRoutes"));
 app.use("/api", require("./routes/deviceMappingRoutes"));
 const deviceDataRoutes = require("./routes/deviceDataRoutes");
-const fakeDevice = require('./fakeDeviceSimulator');
 
 app.use("/api/device-data", deviceDataRoutes); // 👈 makes it available at /api/device-data
 

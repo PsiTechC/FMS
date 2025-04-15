@@ -228,7 +228,14 @@ function MapView({ devices }) {
         marginTop: "1rem"
       }}
     >
-      <MapContainer center={defaultCenter} zoom={6} style={{ height: "100%", width: "100%", zIndex: 1 }}>
+      <MapContainer
+  center={defaultCenter}
+  zoom={6}
+  minZoom={4}  // 👈 set your desired minimum zoom level
+  maxZoom={18} // optional: control how far they can zoom in
+  style={{ height: "100%", width: "100%", zIndex: 1 }}
+>
+
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"

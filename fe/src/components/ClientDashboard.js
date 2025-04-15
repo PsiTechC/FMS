@@ -524,8 +524,6 @@ const getColor = (level) => {
         fetchMappedDevices();
       }, [clientId]);
       
-      
-      
     useEffect(() => {
         const handleOutsideClick = (event) => {
           if (
@@ -855,7 +853,7 @@ const getColor = (level) => {
                                 color: "#FBFDFE",
                                 borderRadius: "12px"
                             }}
-                        >
+                          >
                             <div className="d-flex align-items-center justify-content-between mb-2" style={{ position: "relative" }}>
 
                             <div className="d-flex align-items-center gap-3 mb-2">
@@ -893,87 +891,94 @@ const getColor = (level) => {
                             }}
                             />
 
+{editingDevice === device.deviceID && (
+  <div
+    style={{
+      zIndex: 999,
+      position: "absolute",
+      top: 0,
+      left: "120%", // Opens to the right of the dots icon
+      backgroundColor: "#425970",
+      padding: "10px",
+      borderRadius: "6px",
+      boxShadow: "0 0 6px rgba(0,0,0,0.5)",
+      zIndex: 1000,
+      minWidth: "180px"
+    }}
+  >
+    {/* Label for Device Name */}
+    <small style={{ color: "#ffffff", fontSize: "12px" }}>Device Name</small>
+    <input
+      type="text"
+      className="form-control form-control-sm mb-2"
+      placeholder="Device Name"
+      defaultValue={device.deviceId?.name || ""}
+      ref={(el) => (deviceNameRefs.current[device.deviceID] = el)}
+    />
 
-                    {editingDevice === device.deviceID && (
-                        <div
-                        style={{
-                            zIndex: 999,
-                            position: "absolute",
-                            top: 0,
-                            left: "120%", // Opens to the right of the dots icon
-                            backgroundColor: "#425970",
-                            padding: "10px",
-                            borderRadius: "6px",
-                            boxShadow: "0 0 6px rgba(0,0,0,0.5)",
-                            zIndex: 1000,
-                            minWidth: "180px"
-                        }}
-                        >
-                        <input
-                        type="text"
-                        className="form-control form-control-sm mb-2"
-                        placeholder="Device Name"
-                        defaultValue={device.deviceId?.name || ""}
-                        ref={(el) => (deviceNameRefs.current[device.deviceID] = el)}
-                        />
+    <div className="d-flex justify-content-between mb-2" style={{ gap: "8px" }}>
+      {/* Latitude Section */}
+      <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
+        <small style={{ color: "#ffffff", fontSize: "12px" }}>Lat.</small>
+        <input
+          type="number"
+          step="any"
+          min="-90"
+          max="90"
+          className="form-control form-control-sm"
+          placeholder="Lat."
+          ref={(el) => (latRefs.current[device.deviceID] = el)}
+          style={{ appearance: "none", MozAppearance: "textfield" }}
+          value={parseFloat(deviceLocations[device.deviceID]?.split(",")[0]) || ""}
+          onChange={(e) => {
+            const newLat = e.target.value;
+            const [, lng = ""] = deviceLocations[device.deviceID]?.split(",") || ["", ""];
+            if (/^-?\d*\.?\d*$/.test(newLat)) {
+              setDeviceLocations(prev => ({
+                ...prev,
+                [device.deviceID]: `${newLat},${lng}`
+              }));
+            }
+          }}
+        />
+      </div>
+
+      {/* Longitude Section */}
+      <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
+        <small style={{ color: "#ffffff", fontSize: "12px" }}>Long.</small>
+        <input
+          type="number"
+          step="any"
+          min="-180"
+          max="180"
+          className="form-control form-control-sm"
+          placeholder="Lon."
+          ref={(el) => (lngRefs.current[device.deviceID] = el)}
+          value={parseFloat(deviceLocations[device.deviceID]?.split(",")[1]) || ""}
+          onChange={(e) => {
+            const newLng = e.target.value;
+            const [lat = ""] = deviceLocations[device.deviceID]?.split(",") || ["", ""];
+            if (/^-?\d*\.?\d*$/.test(newLng)) {
+              setDeviceLocations(prev => ({
+                ...prev,
+                [device.deviceID]: `${lat},${newLng}`
+              }));
+            }
+          }}
+        />
+      </div>
+    </div>
+
+    <button
+      className="btn btn-sm btn-success w-100"
+      onClick={() => handleSaveDeviceName(device.deviceID)}
+    >
+      Save
+    </button>
+  </div>
+)}
 
 
-                        <div className="d-flex justify-content-between mb-2" style={{ gap: "8px" }}>
-                          {/* Latitude */}
-                          <input
-                          type="number"
-                          step="any"
-                          min="-90"
-                          max="90"
-                          className="form-control form-control-sm"
-                          placeholder="Lat."
-                          ref={(el) => (latRefs.current[device.deviceID] = el)}
-                          style={{ appearance: "none", MozAppearance: "textfield" }}
-                          value={parseFloat(deviceLocations[device.deviceID]?.split(",")[0]) || ""}
-                          onChange={(e) => {
-                            const newLat = e.target.value;
-                            const [, lng = ""] = deviceLocations[device.deviceID]?.split(",") || ["", ""];
-                            if (/^-?\d*\.?\d*$/.test(newLat)) {
-                              setDeviceLocations(prev => ({
-                                ...prev,
-                                [device.deviceID]: `${newLat},${lng}`
-                              }));
-                            }
-                          }}
-                        />
-
-
-                          {/* Longitude */}
-                          <input
-                            type="number"
-                            step="any"
-                            min="-180"
-                            max="180"
-                            className="form-control form-control-sm"
-                            placeholder="Lon."
-                            ref={(el) => (lngRefs.current[device.deviceID] = el)}
-                            value={parseFloat(deviceLocations[device.deviceID]?.split(",")[1]) || ""}
-                            onChange={(e) => {
-                              const newLng = e.target.value;
-                              const [lat = ""] = deviceLocations[device.deviceID]?.split(",") || ["", ""];
-                              if (/^-?\d*\.?\d*$/.test(newLng)) {
-                                setDeviceLocations(prev => ({
-                                  ...prev,
-                                  [device.deviceID]: `${lat},${newLng}`
-                                }));
-                              }
-                            }}
-                          />
-                        </div>
-                        <button
-                            className="btn btn-sm btn-success w-100"
-                            onClick={() => handleSaveDeviceName(device.deviceID)}
-
-                        >
-                            Save
-                        </button>
-                        </div>
-                        )}
 
                         </div>
                             </div>
@@ -1081,165 +1086,165 @@ const getColor = (level) => {
 
                     </div>
                     <div
-  style={{
-    backgroundColor: "#151C23",
-    color: "white",
-    borderRadius: "12px",
-    width: "220%",
-    maxWidth: "220%%",
-    height: "auto",
-    padding: "20px",
-    boxSizing: "border-box",
-    margin: 0,  // <-- not auto!
-    display: "block" // <-- ensure block alignment
-  }}
->
-  <div style={{ width: "100%", display: "block" }}>
-    <h3 className="fw-bold mb-3 text-white">Alerts</h3>
+                    style={{
+                      backgroundColor: "#151C23",
+                      color: "white",
+                      borderRadius: "12px",
+                      width: "220%",
+                      maxWidth: "220%%",
+                      height: "auto",
+                      padding: "20px",
+                      boxSizing: "border-box",
+                      margin: 0,  // <-- not auto!
+                      display: "block" // <-- ensure block alignment
+                    }}
+                  >
+                    <div style={{ width: "100%", display: "block" }}>
+                      <h3 className="fw-bold mb-3 text-white">Alerts</h3>
 
-    {/* --- First Heading: Water Level Alerts --- */}
-    <div className="d-flex align-items-start mb-3">
-      <FontAwesomeIcon
-        icon={faExclamationCircle}
-        className="me-3 mt-1 text-danger"
-        size="lg"
-      />
-      <div>
-        <div style={{ fontWeight: "bold", color: "#ffffff" }}>
-          Water level exceeds threshold
-        </div>
-      </div>
-    </div>
+                      {/* --- First Heading: Water Level Alerts --- */}
+                      <div className="d-flex align-items-start mb-3">
+                        <FontAwesomeIcon
+                          icon={faExclamationCircle}
+                          className="me-3 mt-1 text-danger"
+                          size="lg"
+                        />
+                        <div>
+                          <div style={{ fontWeight: "bold", color: "#ffffff" }}>
+                            Water level exceeds threshold
+                          </div>
+                        </div>
+                      </div>
 
-    {/* --- Alert Cards Section (scrollable row) --- */}
-    {/* --- Alert Cards Section (scrollable row) --- */}
-<div
-  className="p-3 rounded-3 alert-scrollbar"
-  style={{
-    width: "100%",
-    backgroundColor: "#101419",
-    color: "#ffffff",
-    height: "130px",
-    overflowY: "hidden",
-    overflowX: "auto",
-    paddingRight: "8px",
-    whiteSpace: "nowrap",
-    marginBottom: "20px",
-    scrollbarWidth: "thin",      // optional
-    msOverflowStyle: "none",     // optional
-    scrollBehavior: "smooth"
-  }}
->
-  <div
-    className="d-flex"
-    style={{
-      gap: "10px",
-      height: "90px",
-      width: "max-content",       // ✅ Key fix: grows with content
-      flexWrap: "nowrap"
-    }}
-  >
-    {Object.values(deviceData)
-      .filter((d) => ["red", "orange", "yellow"].includes(d.alert))
-      .map((d, index) => (
-        <div
-          key={index}
-          style={{
-            minWidth: "220px",
-            backgroundColor: "#181f27",
-            borderRadius: "10px",
-            padding: "12px",
-            display: "inline-block"
-          }}
-        >
-          <div
-            style={{
-              fontFamily: "monospace",
-              fontWeight: "bold",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between"
-            }}
-          >
-            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-              <span
-                style={{
-                  fontSize: "1.2rem",
-                  color:
-                    d.alert === "red"
-                      ? "red"
-                      : d.alert === "orange"
-                      ? "orange"
-                      : "yellow"
-                }}
-              >
-                ●
-              </span>
-              <span style={{ color: "#ffffff" }}>
-                {d.deviceId?.name || d.deviceID}
-              </span>
-            </div>
-            <div style={{ fontSize: "0.9rem", color: "#bbbbbb" }}>
-              {new Date().toLocaleTimeString([], {
-                hour: "2-digit",
-                minute: "2-digit"
-              })}
-            </div>
-          </div>
+                    {/* --- Alert Cards Section (scrollable row) --- */}
 
-          <ul style={{ paddingLeft: "20px", marginTop: "6px" }}>
-            <li>
-              <strong>{d.waterLevel} cm</strong>{" "}
-              <strong>({d.distance} cm left)</strong>
-            </li>
-          </ul>
-        </div>
-      ))}
-  </div>
-</div>
+                      <div
+                        className="p-3 rounded-3 alert-scrollbar"
+                        style={{
+                          width: "100%",
+                          backgroundColor: "#101419",
+                          color: "#ffffff",
+                          height: "130px",
+                          overflowY: "hidden",
+                          overflowX: "auto",
+                          paddingRight: "8px",
+                          whiteSpace: "nowrap",
+                          marginBottom: "20px",
+                          scrollbarWidth: "thin",      // optional
+                          msOverflowStyle: "none",     // optional
+                          scrollBehavior: "smooth"
+                        }}
+                      >
+                      <div
+                        className="d-flex"
+                        style={{
+                          gap: "10px",
+                          height: "90px",
+                          width: "max-content",       // ✅ Key fix: grows with content
+                          flexWrap: "nowrap"
+                        }}
+                      >
+                      {Object.values(deviceData)
+                        .filter((d) => ["red", "orange", "yellow"].includes(d.alert))
+                        .map((d, index) => (
+                          <div
+                            key={index}
+                            style={{
+                              minWidth: "220px",
+                              backgroundColor: "#181f27",
+                              borderRadius: "10px",
+                              padding: "12px",
+                              display: "inline-block"
+                            }}
+                          >
+                            <div
+                              style={{
+                                fontFamily: "monospace",
+                                fontWeight: "bold",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "space-between"
+                              }}
+                            >
+                              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                                <span
+                                  style={{
+                                    fontSize: "1.2rem",
+                                    color:
+                                      d.alert === "red"
+                                        ? "red"
+                                        : d.alert === "orange"
+                                        ? "orange"
+                                        : "yellow"
+                                  }}
+                                    >
+                                      ●
+                                    </span>
+                                    <span style={{ color: "#ffffff" }}>
+                                      {d.deviceId?.name || d.deviceID}
+                                    </span>
+                                  </div>
+                                  <div style={{ fontSize: "0.9rem", color: "#bbbbbb" }}>
+                                    {new Date().toLocaleTimeString([], {
+                                      hour: "2-digit",
+                                      minute: "2-digit"
+                                    })}
+                                  </div>
+                                </div>
+
+                              <ul style={{ paddingLeft: "20px", marginTop: "6px" }}>
+                                <li>
+                                  <strong>{d.waterLevel} cm</strong>{" "}
+                                  <strong>({d.distance} cm left)</strong>
+                                </li>
+                              </ul>
+                            </div>
+                          ))}
+                      </div>
+                    </div>
 
 
-    {/* --- Second Heading: Device Connections --- */}
-    <div className="d-flex align-items-start mb-3">
-  <FontAwesomeIcon
-    icon={faTint}
-    className="me-3 mt-1 text-primary"
-    size="lg"
-  />
-  <div>
-    <div style={{ fontWeight: 'bold', color: '#ffffff' }}>
-      Device Connections
-    </div>
-  </div>
-</div>
+                    {/* --- Second Heading: Device Connections --- */}
+                    <div className="d-flex align-items-start mb-3">
+                  <FontAwesomeIcon
+                    icon={faTint}
+                    className="me-3 mt-1 text-primary"
+                    size="lg"
+                  />
+                  <div>
+                    <div style={{ fontWeight: 'bold', color: '#ffffff' }}>
+                      Device Connections
+                    </div>
+                  </div>
+                </div>
 
-<div
-  className="p-3 rounded-3 alert-scrollbar"
-  style={{
-    width: "100%",
-    maxWidth: "100%",
-    backgroundColor: "#101419",
-    color: '#ffffff',
-    height: "120px",
-    overflowY: "hidden",
-    overflowX: "auto",
-    paddingRight: "8px",
-    whiteSpace: "nowrap"
-  }}
->
-  <div className="d-flex" style={{ gap: "10px", height: "80px" }}>
-    {Object.entries(deviceConnectionStatus).map(([deviceID, status], index) => {
-      const deviceName = deviceData[deviceID]?.deviceId?.name || deviceID;
-      let message = "";
-      let color = "";
+                <div
+                  className="p-3 rounded-3 alert-scrollbar"
+                  style={{
+                    width: "100%",
+                    maxWidth: "100%",
+                    backgroundColor: "#101419",
+                    color: '#ffffff',
+                    height: "120px",
+                    overflowY: "hidden",
+                    overflowX: "auto",
+                    paddingRight: "8px",
+                    whiteSpace: "nowrap"
+                  }}
+                >
+        <div className="d-flex" style={{ gap: "10px", height: "80px" }}>
+          {Object.entries(deviceConnectionStatus).map(([deviceID, status], index) => {
+            const deviceName = deviceData[deviceID]?.deviceId?.name || deviceID;
+            let message = "";
+            let color = "";
 
-      if (status === "disconnected") {
-        message = `${deviceName} Disconnected`;
-        color = "red";
-      } else if (status === "back-online") {
-        message = `${deviceName} Back Online`;
-        color = "lightgreen";
-      }
+            if (status === "disconnected") {
+              message = `${deviceName} Disconnected`;
+              color = "red";
+            } else if (status === "back-online") {
+             message = `${deviceName} Back Online`;
+              color = "lightgreen";
+            }
 
       // Device Error: temp & hum = 998
       const isError = deviceData[deviceID]?.temp === 998 && deviceData[deviceID]?.hum === 998;
