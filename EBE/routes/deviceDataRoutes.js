@@ -11,10 +11,6 @@ router.get("/water-data", (req, res) => {
 
 module.exports = router;
 
-
-// routes/deviceDataRoutes.js
-
-
 // Independent helper (same logic, different purpose)
 async function generateNextDeviceCode() {
   const lastDevice = await DeviceMaster.findOne().sort({ created_at: -1 });

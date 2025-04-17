@@ -1,5 +1,6 @@
 import React from 'react';
 import axios from "axios";
+const REACT_FE= process.env.REACT_APP_FE_BASE
 
 
 function Sidebar({ isOpen, setActivePanel, setNextDeviceID }) {
@@ -7,7 +8,7 @@ function Sidebar({ isOpen, setActivePanel, setNextDeviceID }) {
   const handleDevicesClick = async () => {
     try {
       const token = localStorage.getItem("token");
-      const res = await axios.get("http://localhost:5000/api/devices/next-device-id", {
+      const res = await axios.get(`${REACT_FE}/api/devices/next-device-id`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setNextDeviceID(res.data.deviceID);

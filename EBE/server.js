@@ -44,6 +44,7 @@ const cors = require("cors");
 const mongoose = require("mongoose");
 require("dotenv").config();
 
+
 const app = express();
 const server = http.createServer(app); // ✅ Create HTTP server from Express
 
@@ -69,7 +70,7 @@ wss.on("connection", (ws) => {
 
 // 🔐 Middleware
 app.use(cors({
-  origin: process.env.REACT_FE,
+  origin: process.env.CLIENT_ORIGIN,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   credentials: true,
   allowedHeaders: ['Content-Type', 'Authorization']
@@ -90,13 +91,22 @@ app.use("/api", require("./routes/clientRoutes"));
 app.use("/api", require("./routes/deviceRoutes"));
 app.use("/api", require("./routes/deviceMappingRoutes"));
 const deviceDataRoutes = require("./routes/deviceDataRoutes");
-
+const getAlertLive = require("./routes/getDataLive"); // adjust path as needed
+app.use("/api", getAlertLive);
 app.use("/api/device-data", deviceDataRoutes); // 👈 makes it available at /api/device-data
+
+
+const getDataRoute = require("./routes/getAlertLive"); // update path as needed
+app.use("/api", getDataRoute);
 
 const passwordResetRoutes = require("./routes/passwordResetRoutes");
 app.use("/api", passwordResetRoutes);
 const deviceMappingRoutes = require('./routes/deviceMappingRoutes');
 app.use("/api", deviceMappingRoutes);
+
+const alertRoutes = require("./routes/alertRoutes");
+app.use("/api", alertRoutes);
+
 
 app.use("/api", require("./routes/deviceDataRoutes"));
 const mqttRoutes = require("./routes/mqttRoutes");

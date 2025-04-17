@@ -108,6 +108,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import '../index.css';
+const REACT_FE= process.env.REACT_APP_FE_BASE
 
 function DevicePanel({ devices, fetchDevices, nextDeviceID }) {
   const [showDeviceModal, setShowDeviceModal] = useState(false);
@@ -129,7 +130,7 @@ useEffect(() => {
 const openDeviceModal = async () => {
   try {
     const token = localStorage.getItem("token");
-    const res = await axios.get("http://localhost:5000/api/device-data/next-device-code", {
+    const res = await axios.get(`${REACT_FE}/api/device-data/next-device-code`, {
 
       headers: { Authorization: `Bearer ${token}` },
     });
@@ -157,7 +158,7 @@ const openDeviceModal = async () => {
     };
 
     try {
-      await axios.post("http://localhost:5000/api/devices", deviceData);
+      await axios.post(`${REACT_FE}/api/devices`, deviceData);
       console.log("Device saved successfully");
 
       fetchDevices();

@@ -1,10 +1,13 @@
 const mongoose = require("mongoose");
 
 const deviceSchema = new mongoose.Schema({
-  deviceID: { type: String, unique: true }, // No default
+  deviceID: { type: String, unique: true },
   name: { type: String, required: true },
   description: { type: String, default: "" },
-  location: { type: String, default: "" },  // ✅ Added location field
+  location: { type: String, default: "" }, 
+  red: Number,    
+  orange: Number,  
+  yellow: Number ,
   isEnabled: { type: Boolean, default: true },
   isActive: { type: Boolean, default: true },
   isFaulty: { type: Boolean, default: false },

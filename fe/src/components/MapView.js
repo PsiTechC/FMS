@@ -231,7 +231,7 @@ function MapView({ devices }) {
       <MapContainer
   center={defaultCenter}
   zoom={6}
-  minZoom={4}  // 👈 set your desired minimum zoom level
+  minZoom={12}  // 👈 set your desired minimum zoom level
   maxZoom={18} // optional: control how far they can zoom in
   style={{ height: "100%", width: "100%", zIndex: 1 }}
 >

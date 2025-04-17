@@ -19,7 +19,7 @@
 //   useEffect(() => {
 //     const fetchClient = async () => {
 //       try {
-//         const res = await axios.get("http://localhost:5000/api/clients");
+//         const res = await axios.get("${REACT_FE}/api/clients");
 //         const data = res.data.find((c) => c._id === clientId);
 //         setClient(data);
 //       } catch (err) {
@@ -125,8 +125,13 @@ import { faEllipsisV } from "@fortawesome/free-solid-svg-icons";
 import "../App.css"
 import { faExclamationCircle, faTint, faBell } from '@fortawesome/free-solid-svg-icons';
 import useWebSocket from "../hooks/useWebSocket"; // adjust the path as needed
+import Alerts from './Alerts'; // adjust path if needed
+
 
 import { faPen } from '@fortawesome/free-solid-svg-icons';
+const REACT_FE= process.env.REACT_APP_FE_BASE
+const BASE_URL_WS= process.env.REACT_APP_WS_BASE
+console.log(REACT_FE, BASE_URL_WS );
 
 
 function ClientDashboard() {
@@ -158,11 +163,19 @@ function ClientDashboard() {
 const [deviceConnectionStatus, setDeviceConnectionStatus] = useState({});
 
 
+
+
     const deviceEditRefs = useRef({});
     const dropdownRef = useRef(null);
     const latRefs = useRef({});
 const lngRefs = useRef({});
 const deviceNameRefs = useRef({});
+const lastAlertSent = useRef({});
+const lastSignalTimesRef = useRef({});
+
+
+    
+
 
 const getColor = (level) => {
   switch (level) {
@@ -191,7 +204,7 @@ const getColor = (level) => {
     const sendOtp = async () => {
       try {
         setIsLoading(true); // Show spinner
-        const res = await axios.post("http://localhost:5000/api/send-otp", {
+        const res = await axios.post(`${REACT_FE}/api/send-otp`, {
           clientId,
         });
         setOtpSent(true);
@@ -215,7 +228,7 @@ const getColor = (level) => {
     let reconnectTimer;
   
     const connectWebSocket = () => {
-      socket = new WebSocket("ws://localhost:5000/ws/live");
+      socket = new WebSocket(`ws://${BASE_URL_WS}/ws/live`);
   
       socket.onopen = () => {
         console.log("✅ WebSocket connected");
@@ -251,13 +264,11 @@ const getColor = (level) => {
   }, []);
   
   
-  
-
 //   useEffect(() => {
 //     // Fetch mapped devices for the client
 //     const fetchMappedDevices = async () => {
 //         try {
-//           const response = await axios.get(`http://localhost:5000/api/devices/location/client/${clientId}`);
+//           const response = await axios.get(`${REACT_FE}/api/devices/location/client/${clientId}`);
           
 //           // ✅ Log raw API data
 //           console.log("📦 API Response:", response.data);
@@ -292,7 +303,7 @@ const getColor = (level) => {
     //     try {
     //       const updatedName = deviceNames[deviceID]; // Get latest edited name
       
-    //       await axios.put(`http://localhost:5000/api/devices/${deviceID}`, {
+    //       await axios.put(`${REACT_FE}/api/devices/${deviceID}`, {
     //         name: updatedName,
     //       });
       
@@ -327,7 +338,7 @@ const getColor = (level) => {
         });
       
         try {
-          await axios.put(`http://localhost:5000/api/mappings/${mappingId}`, {
+          await axios.put(`${REACT_FE}/api/mappings/${mappingId}`, {
             name: devname,
             location: locationString,
           });
@@ -360,8 +371,6 @@ const getColor = (level) => {
       };
       
       
-      
-
       const handleResetPassword = async () => {
         if (newPassword !== confirmPassword) {
           setOtpError("Passwords do not match.");
@@ -371,7 +380,7 @@ const getColor = (level) => {
         setIsResettingPassword(true); // Show loader
       
         try {
-          await axios.post("http://localhost:5000/api/reset-password", {
+          await axios.post(`${REACT_FE}/api/reset-password`, {
             clientId,
             otp,
             newPassword,
@@ -419,7 +428,7 @@ const getColor = (level) => {
     // useEffect(() => {
     //     const fetchMappedDevices = async () => {
     //       try {
-    //         const res = await axios.get(`http://localhost:5000/api/mappings/client/${clientId}`);
+    //         const res = await axios.get(`${REACT_FE}/api/mappings/client/${clientId}`);
             
     //         const nameMap = {};
     //         const locationMap = {};
@@ -460,7 +469,7 @@ const getColor = (level) => {
     useEffect(() => {
         const fetchMappedDevices = async () => {
           try {
-            const res = await axios.get(`http://localhost:5000/api/mappings/client/${clientId}`);
+            const res = await axios.get(`${REACT_FE}/api/mappings/client/${clientId}`);
             console.log("✅ Raw response from API:", res.data);
       
             const idMap = {};
@@ -547,7 +556,7 @@ const getColor = (level) => {
       
     //     setIsSendingOtp(true);
     //     try {
-    //       const res = await axios.post("http://localhost:5000/api/send-otp", { clientId });
+    //       const res = await axios.post("${REACT_FE}/api/send-otp", { clientId });
     //       setOtpSent(true);
     //       setOtpError("");
     //       setShowPasswordModal(true);
@@ -563,7 +572,7 @@ const getColor = (level) => {
     useEffect(() => {
         const fetchClientName = async () => {
             try {
-                const res = await axios.get(`http://localhost:5000/api/clients/${clientId}`);
+                const res = await axios.get(`${REACT_FE}/api/clients/${clientId}`);
                 setClientName(res.data.username);
             } catch (err) {
                 console.error("Failed to fetch client name:", err);
@@ -572,6 +581,9 @@ const getColor = (level) => {
         fetchClientName();
     }, [clientId]);
 
+
+    
+  
     useEffect(() => {
       let socket;
       let reconnectTimer;
@@ -586,30 +598,67 @@ const getColor = (level) => {
         socket.onmessage = (event) => {
           const data = JSON.parse(event.data);
           console.log("📦 Received WebSocket data:", data);
-          const { deviceID, waterLevel, distance, temp, hum, receivedAt } = data;
     
+          const { deviceID, waterLevel, distance, temp, hum, receivedAt } = data;
           if (!allowedDevices.includes(deviceID)) return;
     
           const timestamp = new Date(receivedAt || Date.now());
     
-          setLastSignalTimes(prev => ({
+          // 🟢 Update signal time
+          setLastSignalTimes((prev) => ({
             ...prev,
             [deviceID]: Date.now()
           }));
     
-          setDeviceConnectionStatus(prev => {
-            const wasDisconnected = prev[deviceID] === 'disconnected';
+          // 🟢 Update device status if it was disconnected
+          setDeviceConnectionStatus((prev) => {
+            const wasDisconnected = prev[deviceID] === "disconnected";
             if (wasDisconnected) {
-              return { ...prev, [deviceID]: 'back-online' };
+              return { ...prev, [deviceID]: "back-online" };
             }
             return prev;
           });
     
+          // 🟡 Alert level logic
           let alert = "none";
-          if (waterLevel >= 50) alert = "red";
-          else if (waterLevel >= 40) alert = "orange";
-          else if (waterLevel >= 30) alert = "yellow";
+          if (waterLevel >= 50) {
+            alert = "red";
     
+            // ✅ Deduplication check
+            if (lastAlertSent.current[deviceID] !== waterLevel) {
+              lastAlertSent.current[deviceID] = waterLevel;
+    
+              const deviceName = deviceData?.[deviceID]?.deviceId?.name || deviceID;
+    
+              // ✅ Define and call async function to use await properly
+              const sendRedAlert = async () => {
+                try {
+                  await axios.post(`${REACT_FE}/api/redalerts`, {
+                    deviceID,
+                    deviceName,
+                    waterLevel,
+                    distance
+                  });
+                  console.log("✅ Red alert saved to backend");
+                } catch (err) {
+                  console.error("❌ Failed to save red alert:", err);
+                }
+              };
+    
+              sendRedAlert(); // trigger alert sending
+            } else {
+              console.log("⚠️ Duplicate red alert skipped for", deviceID);
+            }
+    
+            // 🔊 Play red alert buzzer only if not already playing
+            
+          } else if (waterLevel >= 40) {
+            alert = "orange";
+          } else if (waterLevel >= 30) {
+            alert = "yellow";
+          }
+    
+          // 🔔 Update alert logs UI
           const alertLog = {
             deviceID,
             level: alert,
@@ -618,8 +667,8 @@ const getColor = (level) => {
             time: timestamp
           };
     
-          setAlertLogs(prev => {
-            const existingIndex = prev.findIndex(log => log.deviceID === alertLog.deviceID);
+          setAlertLogs((prev) => {
+            const existingIndex = prev.findIndex((log) => log.deviceID === alertLog.deviceID);
             if (existingIndex !== -1) {
               const updated = [...prev];
               updated[existingIndex] = alertLog;
@@ -628,9 +677,11 @@ const getColor = (level) => {
             return [alertLog, ...prev].slice(0, 10);
           });
     
+          // 📊 Update graph + device state
           setDeviceData((prev) => {
             const history = prev[deviceID]?.history || [];
             const deviceId = prev[deviceID]?.deviceId;
+    
             return {
               ...prev,
               [deviceID]: {
@@ -651,11 +702,11 @@ const getColor = (level) => {
     
         socket.onclose = () => {
           console.warn("⚠️ WebSocket connection closed. Retrying in 3 seconds...");
-          reconnectTimer = setTimeout(connect, 3000); // auto-reconnect
+          reconnectTimer = setTimeout(connect, 3000);
         };
       };
     
-      connect(); // initial connect
+      connect();
     
       return () => {
         clearTimeout(reconnectTimer);
@@ -665,6 +716,7 @@ const getColor = (level) => {
       };
     }, [allowedDevices]);
     
+
     useEffect(() => {
       const interval = setInterval(() => {
         const now = Date.now();
@@ -774,36 +826,42 @@ const getColor = (level) => {
                 >
                 {/* Left side */}
                 <div className="d-flex align-items-center " style={{ gap:"25px" }}>
-
+                <a  href="https://eulerianbots.com" target="_blank" rel="noopener noreferrer" >
                 <img
                     src="/Eulerian_Bots.jpeg"
-                    alt="Logo"
+                    alt="Eulerian Bots"
                     style={{
-                    width: "100px",
-                    height: "90px",
+                    width: "130px",
+                    height: "110px",
                     objectFit: "contain",
                     }}
                 />
+                </a>
+                
                 <div>
+                <h1 className="mb-0">Flood Monitoring</h1>
                     <p className="mb-1" style={{ fontSize: "0.9rem" }}>DASHBOARD</p>
-                    <h2 className="mb-0">Flood Monitoring</h2>
+                    
                 </div>
             </div>
 
                 <div style={{ position: "relative" }} ref={dropdownRef}>
-                    <img
+                  
+                  <img
                     src="/Fiverlogo.png"
                     alt="User Icon"
                     onClick={() => setDropdownVisible(!dropdownVisible)}
                     style={{
-                        width: "44px",
-                        height: "44px",
+                        width: "64px",
+                        height: "64px",
                         cursor: "pointer",
                         borderRadius: "50%",
                         padding: "2px",
                         backgroundColor: "#fff"
+                        
                     }}
                     />
+
                     {/* Dropdown */}
                     {dropdownVisible && (
                     <div
@@ -843,7 +901,10 @@ const getColor = (level) => {
 
             <div className="d-flex justify-content-between">
                 {/* Left side: Device cards */}
-                <div style={{ width: "60%" }}>
+                <div style={{ width: "60%",
+                  
+                  
+                 }}>
                     {Object.values(deviceData).map((device) => (
                         <div
                             key={device.deviceID}
@@ -891,6 +952,122 @@ const getColor = (level) => {
                             }}
                             />
 
+{/* {editingDevice === device.deviceID && (
+  <div
+    style={{
+      position: "fixed",
+      top: 0,
+      left: 0,
+      width: "100vw",
+      height: "100vh",
+      backgroundColor: "rgba(0, 0, 0, 0.5)", // Dimmed background
+      zIndex: 999,
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
+    }}
+  >
+    <div
+      style={{
+        position: "relative", // Needed for absolutely positioned close button
+        backgroundColor: "#425970",
+        padding: "20px",
+        borderRadius: "8px",
+        boxShadow: "0 0 12px rgba(0,0,0,0.6)",
+        minWidth: "300px",
+        zIndex: 1000,
+      }}
+    >
+      
+      <button
+        onClick={() =>  (null)} // replace with your close logic
+        style={{
+          position: "absolute",
+          top: "8px",
+          right: "8px",
+          background: "transparent",
+          border: "none",
+          color: "#ffffff",
+          fontSize: "16px",
+          cursor: "pointer",
+        }}
+        aria-label="Close"
+      >
+        ✖
+      </button>
+
+      <small style={{ color: "#ffffff", fontSize: "12px" }}>Device Name</small>
+      <input
+        type="text"
+        className="form-control form-control-sm mb-2"
+        placeholder="Device Name"
+        defaultValue={device.deviceId?.name || ""}
+        ref={(el) => (deviceNameRefs.current[device.deviceID] = el)}
+      />
+
+      <div className="d-flex justify-content-between mb-2" style={{ gap: "8px" }}>
+        <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
+          <small style={{ color: "#ffffff", fontSize: "12px" }}>Lat.</small>
+          <input
+            type="number"
+            step="any"
+            min="-90"
+            max="90"
+            className="form-control form-control-sm"
+            placeholder="Lat."
+            ref={(el) => (latRefs.current[device.deviceID] = el)}
+            style={{ appearance: "none", MozAppearance: "textfield" }}
+            value={parseFloat(deviceLocations[device.deviceID]?.split(",")[0]) || ""}
+            onChange={(e) => {
+              const newLat = e.target.value;
+              const [, lng = ""] = deviceLocations[device.deviceID]?.split(",") || ["", ""];
+              if (/^-?\d*\.?\d*$/.test(newLat)) {
+                setDeviceLocations(prev => ({
+                  ...prev,
+                  [device.deviceID]: `${newLat},${lng}`
+                }));
+              }
+            }}
+          />
+        </div>
+
+        <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
+          <small style={{ color: "#ffffff", fontSize: "12px" }}>Long.</small>
+          <input
+            type="number"
+            step="any"
+            min="-180"
+            max="180"
+            className="form-control form-control-sm"
+            placeholder="Lon."
+            ref={(el) => (lngRefs.current[device.deviceID] = el)}
+            value={parseFloat(deviceLocations[device.deviceID]?.split(",")[1]) || ""}
+            onChange={(e) => {
+              const newLng = e.target.value;
+              const [lat = ""] = deviceLocations[device.deviceID]?.split(",") || ["", ""];
+              if (/^-?\d*\.?\d*$/.test(newLng)) {
+                setDeviceLocations(prev => ({
+                  ...prev,
+                  [device.deviceID]: `${lat},${newLng}`
+                }));
+              }
+            }}
+          />
+        </div>
+      </div>
+
+      <button
+        className="btn btn-sm btn-success w-100"
+        onClick={() => handleSaveDeviceName(device.deviceID)}
+      >
+        Save
+      </button>
+    </div>
+  </div>
+)} */}
+
+
+
 {editingDevice === device.deviceID && (
   <div
     style={{
@@ -902,11 +1079,12 @@ const getColor = (level) => {
       padding: "10px",
       borderRadius: "6px",
       boxShadow: "0 0 6px rgba(0,0,0,0.5)",
-      zIndex: 1000,
-      minWidth: "180px"
+      zIndex: 2000,
+      minWidth: "230px"
+      
     }}
   >
-    {/* Label for Device Name */}
+    <h6>Device Settings</h6>
     <small style={{ color: "#ffffff", fontSize: "12px" }}>Device Name</small>
     <input
       type="text"
@@ -917,7 +1095,7 @@ const getColor = (level) => {
     />
 
     <div className="d-flex justify-content-between mb-2" style={{ gap: "8px" }}>
-      {/* Latitude Section */}
+      
       <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
         <small style={{ color: "#ffffff", fontSize: "12px" }}>Lat.</small>
         <input
@@ -943,7 +1121,7 @@ const getColor = (level) => {
         />
       </div>
 
-      {/* Longitude Section */}
+      
       <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
         <small style={{ color: "#ffffff", fontSize: "12px" }}>Long.</small>
         <input
@@ -978,28 +1156,27 @@ const getColor = (level) => {
   </div>
 )}
 
-
-
                         </div>
                             </div>
 
-                            <div className="d-flex align-items-center gap-3 small">
-                                <span>
-                                    <strong>Distance:</strong> {device.distance} cm
-                                </span>
-                                <span>
-                                    <strong>Battery Voltage:</strong> {device.batteryVoltage} V
-                                </span>
-                                <span>
-                                    <strong>Solar Voltage:</strong> {device.solarVoltage} V
-                                </span>
-                                <span>
-                                    <strong>Temperature:</strong> {device.temp} C
-                                </span>
-                                <span>
-                                    <strong>Humidity:</strong> {device.hum} %
-                                </span>
-                            </div>
+                            <div className="d-flex align-items-center gap-3 small flex-wrap">
+  <span style={{ minWidth: "150px" }}>
+    <strong>Distance:</strong> {device.distance} cm
+  </span>
+  <span style={{ minWidth: "180px" }}>
+    <strong>Battery Voltage:</strong> {device.batteryVoltage} V
+  </span>
+  <span style={{ minWidth: "160px" }}>
+    <strong>Solar Voltage:</strong> {device.solarVoltage} V
+  </span>
+  <span style={{ minWidth: "150px" }}>
+    <strong>Temperature:</strong> {device.temp} C
+  </span>
+  <span style={{ minWidth: "150px" }}>
+    <strong>Humidity:</strong> {device.hum} %
+  </span>
+</div>
+
 
                             <div className="mt-2" style={{ height: "240px" }}>
                                 <WaterLevelChart
@@ -1022,7 +1199,7 @@ const getColor = (level) => {
                         marginTop: "1rem",
                     }}
                 >
-                    {/* ⬆️ Your existing summary box — unchanged */}
+                   
                     <div
                         style={{
                             backgroundColor: "#151C23",
@@ -1039,7 +1216,7 @@ const getColor = (level) => {
                             style={{
                                 backgroundColor: "#1b4332",
                                 borderRadius: "8px",
-                                padding: "6px 10px", // reduced padding
+                                padding: "6px 10px", 
                                 textAlign: "center",
                             }}
                         >
@@ -1071,7 +1248,7 @@ const getColor = (level) => {
                         </div>
                     </div>
 
-                    {/* ⬇️ Map below the summary, matching width and style */}
+                    
                     <div
 
                         style={{
@@ -1085,223 +1262,12 @@ const getColor = (level) => {
                         <MapView devices={deviceLocations} />
 
                     </div>
-                    <div
-                    style={{
-                      backgroundColor: "#151C23",
-                      color: "white",
-                      borderRadius: "12px",
-                      width: "220%",
-                      maxWidth: "220%%",
-                      height: "auto",
-                      padding: "20px",
-                      boxSizing: "border-box",
-                      margin: 0,  // <-- not auto!
-                      display: "block" // <-- ensure block alignment
-                    }}
-                  >
-                    <div style={{ width: "100%", display: "block" }}>
-                      <h3 className="fw-bold mb-3 text-white">Alerts</h3>
 
-                      {/* --- First Heading: Water Level Alerts --- */}
-                      <div className="d-flex align-items-start mb-3">
-                        <FontAwesomeIcon
-                          icon={faExclamationCircle}
-                          className="me-3 mt-1 text-danger"
-                          size="lg"
-                        />
-                        <div>
-                          <div style={{ fontWeight: "bold", color: "#ffffff" }}>
-                            Water level exceeds threshold
-                          </div>
-                        </div>
-                      </div>
+                    <Alerts
+                      deviceData={deviceData}
+                      deviceConnectionStatus={deviceConnectionStatus}
+                    />
 
-                    {/* --- Alert Cards Section (scrollable row) --- */}
-
-                      <div
-                        className="p-3 rounded-3 alert-scrollbar"
-                        style={{
-                          width: "100%",
-                          backgroundColor: "#101419",
-                          color: "#ffffff",
-                          height: "130px",
-                          overflowY: "hidden",
-                          overflowX: "auto",
-                          paddingRight: "8px",
-                          whiteSpace: "nowrap",
-                          marginBottom: "20px",
-                          scrollbarWidth: "thin",      // optional
-                          msOverflowStyle: "none",     // optional
-                          scrollBehavior: "smooth"
-                        }}
-                      >
-                      <div
-                        className="d-flex"
-                        style={{
-                          gap: "10px",
-                          height: "90px",
-                          width: "max-content",       // ✅ Key fix: grows with content
-                          flexWrap: "nowrap"
-                        }}
-                      >
-                      {Object.values(deviceData)
-                        .filter((d) => ["red", "orange", "yellow"].includes(d.alert))
-                        .map((d, index) => (
-                          <div
-                            key={index}
-                            style={{
-                              minWidth: "220px",
-                              backgroundColor: "#181f27",
-                              borderRadius: "10px",
-                              padding: "12px",
-                              display: "inline-block"
-                            }}
-                          >
-                            <div
-                              style={{
-                                fontFamily: "monospace",
-                                fontWeight: "bold",
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "space-between"
-                              }}
-                            >
-                              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                                <span
-                                  style={{
-                                    fontSize: "1.2rem",
-                                    color:
-                                      d.alert === "red"
-                                        ? "red"
-                                        : d.alert === "orange"
-                                        ? "orange"
-                                        : "yellow"
-                                  }}
-                                    >
-                                      ●
-                                    </span>
-                                    <span style={{ color: "#ffffff" }}>
-                                      {d.deviceId?.name || d.deviceID}
-                                    </span>
-                                  </div>
-                                  <div style={{ fontSize: "0.9rem", color: "#bbbbbb" }}>
-                                    {new Date().toLocaleTimeString([], {
-                                      hour: "2-digit",
-                                      minute: "2-digit"
-                                    })}
-                                  </div>
-                                </div>
-
-                              <ul style={{ paddingLeft: "20px", marginTop: "6px" }}>
-                                <li>
-                                  <strong>{d.waterLevel} cm</strong>{" "}
-                                  <strong>({d.distance} cm left)</strong>
-                                </li>
-                              </ul>
-                            </div>
-                          ))}
-                      </div>
-                    </div>
-
-
-                    {/* --- Second Heading: Device Connections --- */}
-                    <div className="d-flex align-items-start mb-3">
-                  <FontAwesomeIcon
-                    icon={faTint}
-                    className="me-3 mt-1 text-primary"
-                    size="lg"
-                  />
-                  <div>
-                    <div style={{ fontWeight: 'bold', color: '#ffffff' }}>
-                      Device Connections
-                    </div>
-                  </div>
-                </div>
-
-                <div
-                  className="p-3 rounded-3 alert-scrollbar"
-                  style={{
-                    width: "100%",
-                    maxWidth: "100%",
-                    backgroundColor: "#101419",
-                    color: '#ffffff',
-                    height: "120px",
-                    overflowY: "hidden",
-                    overflowX: "auto",
-                    paddingRight: "8px",
-                    whiteSpace: "nowrap"
-                  }}
-                >
-        <div className="d-flex" style={{ gap: "10px", height: "80px" }}>
-          {Object.entries(deviceConnectionStatus).map(([deviceID, status], index) => {
-            const deviceName = deviceData[deviceID]?.deviceId?.name || deviceID;
-            let message = "";
-            let color = "";
-
-            if (status === "disconnected") {
-              message = `${deviceName} Disconnected`;
-              color = "red";
-            } else if (status === "back-online") {
-             message = `${deviceName} Back Online`;
-              color = "lightgreen";
-            }
-
-      // Device Error: temp & hum = 998
-      const isError = deviceData[deviceID]?.temp === 998 && deviceData[deviceID]?.hum === 998;
-      if (isError) {
-        message = `${deviceName} Error`;
-        color = "orange";
-      }
-
-      if (!message) return null;
-
-      return (
-        <div
-          key={index}
-          style={{
-            minWidth: "220px",
-            backgroundColor: "#181f27",
-            borderRadius: "10px",
-            padding: "12px",
-            display: "inline-block"
-          }}
-        >
-          <div
-            style={{
-              fontFamily: "monospace",
-              fontWeight: "bold",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between"
-            }}
-          >
-            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-              <span style={{ fontSize: "1.2rem", color: "#FFFFFF" }}>●</span>
-              <div style={{ paddingLeft: "6px", marginTop: "6px", fontSize: "0.9rem", color: "#dddddd" }}>
-            {message}
-          </div>
-            </div>
-            
-          </div>
-          <div style={{ fontSize: "0.9rem", color: "#bbbbbb", fontWeight:"bold", marginLeft:"24px" }}>
-              {new Date().toLocaleTimeString([], {
-                hour: "2-digit",
-                minute: "2-digit"
-              })}
-            </div>
-          
-        </div>
-      );
-    })}
-  </div>
-</div>
-  </div>
-</div>
-
-
-
-
-                    
                 </div>
             </div>
 
@@ -1462,12 +1428,8 @@ const getColor = (level) => {
     </div>
   </div>
 )}
-
-
         </div>
     );
 }
 
 export default ClientDashboard;
-
-

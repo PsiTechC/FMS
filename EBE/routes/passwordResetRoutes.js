@@ -99,7 +99,6 @@ router.post("/reset-password", async (req, res) => {
 
   const entry = otpStore.get(clientId);
   
-
   if (!entry) return res.status(400).json({ error: "OTP not found. Request a new one." });
   if (Date.now() > entry.expiresAt) return res.status(400).json({ error: "OTP expired." });
   if (entry.otp !== otp) return res.status(400).json({ error: "Invalid OTP." });

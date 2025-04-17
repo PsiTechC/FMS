@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import axios from "axios";
+const REACT_FE= process.env.REACT_APP_FE_BASE
 
 function MappingPanel({ clients, devices, mappings, fetchMappings }) {
   const [selectedClients, setSelectedClients] = useState([]);
@@ -53,7 +54,7 @@ function MappingPanel({ clients, devices, mappings, fetchMappings }) {
     if (!window.confirm("Are you sure you want to delete this mapping?")) return;
     try {
       setLoading(true);
-      await axios.delete(`http://localhost:5000/api/map-devices/${mappingId}`);
+      await axios.delete(`${REACT_FE}/api/map-devices/${mappingId}`);
       alert("Mapping deleted successfully");
       fetchMappings(); // refresh mappings
     } catch (error) {
@@ -66,7 +67,7 @@ function MappingPanel({ clients, devices, mappings, fetchMappings }) {
   
   const handleMapDevice = async () => {
     try {
-      await axios.post("http://localhost:5000/api/map-devices", {
+      await axios.post(`${REACT_FE}/api/map-devices`, {
         selectedClients,
         selectedDevices,
       });

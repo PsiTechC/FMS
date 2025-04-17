@@ -479,6 +479,7 @@
 // src/components/ClientPanel.js
 import React, { useState } from "react";
 import axios from "axios";
+const REACT_FE= process.env.REACT_APP_FE_BASE
 
 function ClientPanel({ clients, fetchClients }) {
   const [showModal, setShowModal] = useState(false);
@@ -542,7 +543,7 @@ function ClientPanel({ clients, fetchClients }) {
     try {
       // await axios.post("http://localhost:5000/api/clients", clientData);
       const token = localStorage.getItem("token");
-await axios.post("http://localhost:5000/api/clients", clientData, {
+await axios.post(`${REACT_FE}/api/clients`, clientData, {
   headers: {
     Authorization: `Bearer ${token}`,
   },
@@ -572,7 +573,7 @@ await axios.post("http://localhost:5000/api/clients", clientData, {
     try {
       // await axios.delete(`http://localhost:5000/api/clients/${id}`);
       const token = localStorage.getItem("token");
-await axios.delete(`http://localhost:5000/api/clients/${id}`, {
+await axios.delete(`${REACT_FE}/api/clients/${id}`, {
   headers: {
     Authorization: `Bearer ${token}`,
   },

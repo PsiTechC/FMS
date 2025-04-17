@@ -695,6 +695,7 @@ import MappingPanel from "./MappingPanel";
 import { useNavigate } from "react-router-dom";
 import Cookies from "js-cookie";
 import axios from "axios";
+const REACT_FE= process.env.REACT_APP_FE_BASE
 
 function AdminDashboard() {
   const [isOpen, setIsOpen] = useState(true);
@@ -727,7 +728,7 @@ const handleLogout = () => {
   // Fetch data
   const fetchMappings = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/mappings");
+      const res = await axios.get(`${REACT_FE}/api/mappings`);
       setMappings(res.data);
     } catch (error) {
       console.error("Error fetching mappings:", error);
@@ -737,7 +738,7 @@ const handleLogout = () => {
 
   const fetchDevices = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/devices");
+      const res = await axios.get(`${REACT_FE}/api/devices`);
       setDevices(res.data);
     } catch (error) {
       console.error("Error fetching devices:", error);
@@ -748,7 +749,7 @@ const handleLogout = () => {
     try {
       const token = localStorage.getItem("token");
 
-      const res = await axios.get("http://localhost:5000/api/clients", {
+      const res = await axios.get(`${REACT_FE}/api/clients`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

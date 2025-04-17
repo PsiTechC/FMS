@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import Cookies from "js-cookie";
 import "bootstrap/dist/css/bootstrap.min.css";
+const REACT_FE= process.env.REACT_APP_FE_BASE
 
 function Loginn() {
   const [username, setUsername] = useState("");
@@ -13,7 +14,7 @@ function Loginn() {
     e.preventDefault();
   
     try {
-      const res = await axios.post("http://localhost:5000/api/login", {
+      const res = await axios.post(`${REACT_FE}/api/login`, {
         username,
         password,
       });

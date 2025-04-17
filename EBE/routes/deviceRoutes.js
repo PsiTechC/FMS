@@ -16,15 +16,39 @@ async function generateNextDeviceID() {
 }
 
 // POST route
+// router.post("/devices", async (req, res) => {
+//   try {
+//     const { name, description, location } = req.body;
+//     const deviceID = await generateNextDeviceID();
+//     const newDevice = new DeviceMaster({
+//       deviceID,
+//       name,
+//       description,
+//       location,
+//     });
+
+//     const saved = await newDevice.save();
+//     res.status(201).json(saved);
+//   } catch (err) {
+//     console.error("Error saving device:", err);
+//     res.status(500).json({ error: "Failed to save device" });
+//   }
+// });
+
+
 router.post("/devices", async (req, res) => {
   try {
-    const { name, description, location } = req.body;
+    const { name, description, location, red, orange, yellow } = req.body;
     const deviceID = await generateNextDeviceID();
+
     const newDevice = new DeviceMaster({
       deviceID,
       name,
       description,
       location,
+      red,     // NEW
+      orange,  // NEW
+      yellow,  // NEW
     });
 
     const saved = await newDevice.save();
