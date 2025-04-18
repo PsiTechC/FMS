@@ -200,9 +200,43 @@ router.put("/api/mappings/:mappingId", async (req, res) => {
 });
 
 // PUT /api/mappings/:id
+// router.put("/mappings/:id", async (req, res) => {
+//   const { id } = req.params;
+//   const { name, location } = req.body;
+
+//   try {
+//     // Step 1: Find the mapping by its _id
+//     const mapping = await ClientDeviceMap.findById(id);
+//     if (!mapping) {
+//       console.warn("❌ Mapping not found");
+//       return res.status(404).json({ error: "Mapping not found" });
+//     }
+
+//     console.log("📌 Found mapping:", mapping);
+
+//     // Step 2: Use deviceId from mapping to update the device
+//     const updatedDevice = await DeviceMaster.findByIdAndUpdate(
+//       mapping.deviceId,
+//       { $set: { name, location } },
+//       { new: true }
+//     );
+
+//     if (!updatedDevice) {
+//       return res.status(404).json({ error: "Device not found" });
+//     }
+
+//     console.log("✅ Updated device:", updatedDevice);
+//     res.status(200).json({ message: "Device updated", updated: updatedDevice });
+
+//   } catch (err) {
+//     console.error("❌ Error updating device:", err);
+//     res.status(500).json({ error: "Internal server error" });
+//   }
+// });
+
 router.put("/mappings/:id", async (req, res) => {
   const { id } = req.params;
-  const { name, location } = req.body;
+  const { name, location, red, orange, yellow } = req.body;
 
   try {
     // Step 1: Find the mapping by its _id
@@ -214,10 +248,18 @@ router.put("/mappings/:id", async (req, res) => {
 
     console.log("📌 Found mapping:", mapping);
 
-    // Step 2: Use deviceId from mapping to update the device
+    // Step 2: Update DeviceMaster using the deviceId
     const updatedDevice = await DeviceMaster.findByIdAndUpdate(
       mapping.deviceId,
-      { $set: { name, location } },
+      {
+        $set: {
+          name,
+          location,
+          red: red ?? null,
+          orange: orange ?? null,
+          yellow: yellow ?? null
+        }
+      },
       { new: true }
     );
 
@@ -234,6 +276,22 @@ router.put("/mappings/:id", async (req, res) => {
   }
 });
 
+
+// DELETE /api/map-devices/:mappingId
+router.delete("/map-devices/:mappingId", async (req, res) => {
+  const { mappingId } = req.params;
+
+  try {
+    const result = await ClientDeviceMap.findByIdAndDelete(mappingId);
+    if (!result) {
+      return res.status(404).json({ message: "Mapping not found" });
+    }
+    res.status(200).json({ message: "Mapping deleted successfully", result });
+  } catch (error) {
+    console.error("❌ Deletion error:", error);
+    res.status(500).json({ message: "Failed to delete mapping", error });
+  }
+});
 
 
 module.exports = router;

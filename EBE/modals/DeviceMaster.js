@@ -5,9 +5,10 @@ const deviceSchema = new mongoose.Schema({
   name: { type: String, required: true },
   description: { type: String, default: "" },
   location: { type: String, default: "" }, 
-  red: Number,    
-  orange: Number,  
-  yellow: Number ,
+  red: { type: Number, default: null },
+orange: { type: Number, default: null },
+yellow: { type: Number, default: null },
+
   isEnabled: { type: Boolean, default: true },
   isActive: { type: Boolean, default: true },
   isFaulty: { type: Boolean, default: false },

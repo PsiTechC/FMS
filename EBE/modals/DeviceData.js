@@ -20,4 +20,3 @@ function validateDevicePayload(payload) {
   }
   
   module.exports = validateDevicePayload;
-  

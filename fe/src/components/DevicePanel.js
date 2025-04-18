@@ -114,6 +114,9 @@ function DevicePanel({ devices, fetchDevices, nextDeviceID }) {
   const [showDeviceModal, setShowDeviceModal] = useState(false);
   const [deviceName, setDeviceName] = useState("");
   const [deviceDescription, setDeviceDescription] = useState("");
+  const [redalertlevel, setredalertlevel] = useState("");
+  const [orangealertlevel, setorangealertlevel] = useState("");
+  const [yellowalertlevel, setyellowalertlevel] = useState("");
   const [location, setLocation] = useState("");
   const [loading, setLoading] = useState(false);
   const [latitude, setLatitude] = useState("");  // decimal only (e.g., 28.38)
@@ -150,17 +153,20 @@ const openDeviceModal = async () => {
 
   const handleSaveDevice = async () => {
     setLoading(true);
-
+  
     const deviceData = {
       name: deviceName,
       description: deviceDescription,
       location: `${latitude},${longitude}`,
+      red: null,
+      orange: null,
+      yellow: null,
     };
-
+  
     try {
       await axios.post(`${REACT_FE}/api/devices`, deviceData);
       console.log("Device saved successfully");
-
+  
       fetchDevices();
       setDeviceName("");
       setDeviceDescription("");
@@ -169,8 +175,10 @@ const openDeviceModal = async () => {
     } catch (error) {
       console.error("Error saving device:", error.response?.data || error.message);
     }
+  
     setLoading(false);
   };
+  
 
   useEffect(() => {
     fetchDevices();
@@ -265,6 +273,40 @@ const openDeviceModal = async () => {
                         onChange={(e) => setDeviceDescription(e.target.value)}
                       ></textarea>
                     </div>
+
+                    {/* <div className="mb-3">
+                      <label className="form-label">Red alert level</label>
+                      <input
+                        type="number"
+                        className="form-control"
+                        placeholder="Red alert level"
+                        value={deviceName}
+                        onChange={(e) => setredalertlevel(e.target.value)}
+                      />
+                    </div>
+
+                    <div className="mb-3">
+                      <label className="form-label">Orange alert level</label>
+                      <input
+                        type="number"
+                        className="form-control"
+                        placeholder="Orange alert level"
+                        value={deviceName}
+                        onChange={(e) => setorangealertlevel(e.target.value)}
+                      />
+                    </div>
+
+                    <div className="mb-3">
+                      <label className="form-label">Yellow alert level</label>
+                      <input
+                        type="number"
+                        className="form-control"
+                        placeholder="Yellow alert level"
+                        value={deviceName}
+                        onChange={(e) => setyellowalertlevel(e.target.value)}
+                      />
+                    </div> */}
+                    
                     <div className="mb-3">
                       <label className="form-label">Location</label>
                       <div className="row">

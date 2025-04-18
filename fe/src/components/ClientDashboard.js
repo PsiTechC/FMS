@@ -162,20 +162,17 @@ function ClientDashboard() {
     const [lastSignalTimes, setLastSignalTimes] = useState({});
 const [deviceConnectionStatus, setDeviceConnectionStatus] = useState({});
 
-
-
-
     const deviceEditRefs = useRef({});
     const dropdownRef = useRef(null);
     const latRefs = useRef({});
-const lngRefs = useRef({});
-const deviceNameRefs = useRef({});
-const lastAlertSent = useRef({});
-const lastSignalTimesRef = useRef({});
+    const lngRefs = useRef({});
+    const deviceNameRefs = useRef({});
+    const lastAlertSent = useRef({}); 
+    const lastSignalTimesRef = useRef({});
 
-
-    
-
+    const redAlertRefs = useRef({});
+const orangeAlertRefs = useRef({});
+const yellowAlertRefs = useRef({});
 
 const getColor = (level) => {
   switch (level) {
@@ -315,60 +312,69 @@ const getColor = (level) => {
     //   };
 
     const handleSaveDeviceName = async (deviceID) => {
-        console.log("🟢 Save clicked for deviceID:", deviceID);
-        console.log("📦 mappingIds object:", mappingIds);
-      
-        const mappingId = mappingIds[deviceID];
-        console.log("📌 Mapping ID retrieved:", mappingId);
-      
-        if (!mappingId) {
-          console.warn("❌ No mappingId found for deviceID:", deviceID);
-          return;
-        }
-      
-        const devname = deviceNameRefs.current[deviceID]?.value?.trim() || "";
-        const lat = latRefs.current[deviceID]?.value?.trim() || "";
-        const lng = lngRefs.current[deviceID]?.value?.trim() || "";
-        const locationString = `${lat},${lng}`;
-      
-        console.log("📤 Sending API call...");
-        console.log({
-          name: devname,
-          location: locationString
-        });
-      
-        try {
-          await axios.put(`${REACT_FE}/api/mappings/${mappingId}`, {
-            name: devname,
-            location: locationString,
-          });
-      
-          // ✅ Update local UI state to reflect new name
-          setDeviceData((prev) => ({
-            ...prev,
-            [deviceID]: {
-              ...prev[deviceID],
-              deviceId: {
-                ...prev[deviceID].deviceId,
-                name: devname,
-                location: locationString
-              }
-            }
-          }));
-
-          setDeviceLocations((prev) => ({
-            ...prev,
-            [deviceID]: locationString
-          }));
-
-          setEditingDevice(null);
-
-      
-          console.log("✅ Saved updated name and location!");
-        } catch (err) {
-          console.error("❌ Failed to update mapping:", err);
-        }
+      console.log("🟢 Save clicked for deviceID:", deviceID);
+      console.log("📦 mappingIds object:", mappingIds);
+    
+      const mappingId = mappingIds[deviceID];
+      console.log("📌 Mapping ID retrieved:", mappingId);
+    
+      if (!mappingId) {
+        console.warn("❌ No mappingId found for deviceID:", deviceID);
+        return;
+      }
+    
+      const devname = deviceNameRefs.current[deviceID]?.value?.trim() || "";
+      const lat = latRefs.current[deviceID]?.value?.trim() || "";
+      const lng = lngRefs.current[deviceID]?.value?.trim() || "";
+      const locationString = `${lat},${lng}`;
+    
+      // 🔴🟠🟡 Alert Level Inputs
+      const red = parseInt(redAlertRefs.current[deviceID]?.value);
+      const orange = parseInt(orangeAlertRefs.current[deviceID]?.value);
+      const yellow = parseInt(yellowAlertRefs.current[deviceID]?.value);
+    
+      const payload = {
+        name: devname,
+        location: locationString,
+        red: isNaN(red) ? null : red,
+        orange: isNaN(orange) ? null : orange,
+        yellow: isNaN(yellow) ? null : yellow
       };
+    
+      console.log("📤 Sending API call with payload:", payload);
+    
+      try {
+        await axios.put(`${REACT_FE}/api/mappings/${mappingId}`, payload);
+    
+        // ✅ Update local UI state to reflect changes
+        setDeviceData((prev) => ({
+          ...prev,
+          [deviceID]: {
+            ...prev[deviceID],
+            deviceId: {
+              ...prev[deviceID].deviceId,
+              name: devname,
+              location: locationString,
+              red: payload.red,
+              orange: payload.orange,
+              yellow: payload.yellow
+            }
+          }
+        }));
+    
+        setDeviceLocations((prev) => ({
+          ...prev,
+          [deviceID]: locationString
+        }));
+    
+        setEditingDevice(null);
+    
+        console.log("✅ Saved updated name, location, and alert levels!");
+      } catch (err) {
+        console.error("❌ Failed to update mapping:", err);
+      }
+    };
+    
       
       
       const handleResetPassword = async () => {
@@ -405,7 +411,6 @@ const getColor = (level) => {
           setIsResettingPassword(false); // Hide loader on error
         }
       };
-      
       
     const handleLogout = () => {
         Cookies.remove("auth");
@@ -482,10 +487,10 @@ const getColor = (level) => {
                 const deviceID = deviceId.deviceID;
                 const name = deviceId.name;
               
-              const location = deviceId.location;
+                const location = deviceId.location;
       
-              idMap[deviceID] = _id;
-              deviceStatusMap[deviceID] = 'disconnected';
+                idMap[deviceID] = _id;
+                deviceStatusMap[deviceID] = 'disconnected';
       
               if (location) {
                 const [lat, lng] = location.split(",").map(val => val.trim());
@@ -580,9 +585,6 @@ const getColor = (level) => {
         };
         fetchClientName();
     }, [clientId]);
-
-
-    
   
     useEffect(() => {
       let socket;
@@ -716,7 +718,6 @@ const getColor = (level) => {
       };
     }, [allowedDevices]);
     
-
     useEffect(() => {
       const interval = setInterval(() => {
         const now = Date.now();
@@ -1081,7 +1082,6 @@ const getColor = (level) => {
       boxShadow: "0 0 6px rgba(0,0,0,0.5)",
       zIndex: 2000,
       minWidth: "230px"
-      
     }}
   >
     <h6>Device Settings</h6>
@@ -1145,10 +1145,63 @@ const getColor = (level) => {
           }}
         />
       </div>
+      
     </div>
+
+    <div class="margin" style={{ display: "flex", flexDirection: "column", flex: 1 }}>
+  <small style={{ color: "#ffffff", fontSize: "12px" }}>Red alert level</small>
+  <input
+    type="number"
+    min="0"
+    step="1"
+    className="form-control form-control-sm"
+    placeholder="Red alert level"
+    ref={(el) => (redAlertRefs.current[device.deviceID] = el)}
+    defaultValue={device.deviceId?.red ?? ""}
+    onKeyDown={(e) => {
+      if (["e", "E", "+", "-"].includes(e.key)) e.preventDefault();
+    }}
+  />
+</div>
+
+
+<div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
+  <small style={{ color: "#ffffff", fontSize: "12px" }}>Orange alert level</small>
+  <input
+    type="number"
+    min="0"
+    step="1"
+    className="form-control form-control-sm"
+    placeholder="Orange alert level"
+    ref={(el) => (orangeAlertRefs.current[device.deviceID] = el)}
+    defaultValue={device.deviceId?.orange ?? ""}
+    onKeyDown={(e) => {
+      if (["e", "E", "+", "-"].includes(e.key)) e.preventDefault();
+    }}
+  />
+</div>
+
+
+<div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
+  <small style={{ color: "#ffffff", fontSize: "12px" }}>Yellow alert level</small>
+  <input
+    type="number"
+    min="0"
+    step="1"
+    className="form-control form-control-sm"
+    placeholder="Yellow alert level"
+    ref={(el) => (yellowAlertRefs.current[device.deviceID] = el)}
+    defaultValue={device.deviceId?.yellow ?? ""}
+    onKeyDown={(e) => {
+      if (["e", "E", "+", "-"].includes(e.key)) e.preventDefault();
+    }}
+  />
+</div>
+
 
     <button
       className="btn btn-sm btn-success w-100"
+      style={{ marginTop: "12px" }}
       onClick={() => handleSaveDeviceName(device.deviceID)}
     >
       Save
@@ -1265,6 +1318,7 @@ const getColor = (level) => {
 
                     <Alerts
                       deviceData={deviceData}
+                      clientId={clientId}
                       deviceConnectionStatus={deviceConnectionStatus}
                     />
 
