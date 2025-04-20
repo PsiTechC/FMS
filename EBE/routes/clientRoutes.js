@@ -203,7 +203,7 @@ router.post("/clients", async (req, res) => {
     const savedClient = await newClient.save();
 
     // ✅ Use email as the login identifier in the email sent
-    const loginUrl = "http://localhost:3000";
+    const loginUrl = "https://fms.eulerianbots.com";
     
     const mailOptions = {
       from: process.env.OF_USER,

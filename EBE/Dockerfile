@@ -1,18 +1,23 @@
-# Use the official Node.js LTS version
+# Use official Node.js 18 image
 FROM node:18
 
-# Set the working directory inside the container
+# Create app directory
 WORKDIR /app
 
-# Copy package files and install dependencies
+# Copy only package.json first
 COPY package*.json ./
+
+# Install fresh node_modules inside the container
 RUN npm install
 
-# Copy the rest of the backend code
+# Now copy rest of the source code
 COPY . .
 
-# Expose the backend port
-EXPOSE 5040
+# Expose ports
+EXPOSE 5000
+EXPOSE 5001
 
-# Start the Express app
-CMD ["node", "index.js"]
+# Run your app
+CMD ["node", "server.js"]
+
+

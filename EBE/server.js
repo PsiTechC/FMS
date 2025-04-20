@@ -43,9 +43,11 @@ const http = require("http"); // ✅ Wrap Express
 const cors = require("cors");
 const mongoose = require("mongoose");
 require("dotenv").config();
-
-
 const app = express();
+
+app.use(express.json());
+
+
 const server = http.createServer(app); // ✅ Create HTTP server from Express
 
 // 🧠 WebSocket Setup
@@ -69,13 +71,29 @@ wss.on("connection", (ws) => {
 });
 
 // 🔐 Middleware
+
+const allowedOrigins = [
+  process.env.CLIENT_ORIGIN,
+  "https://fms.eulerianbots.com",
+  "http://localhost:3000"  // ← include this for development
+];
+
+
 app.use(cors({
-  origin: process.env.CLIENT_ORIGIN,
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   credentials: true,
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
-app.use(express.json());
+
 
 // 🔌 MongoDB Connection
 mongoose.connect(process.env.MONGO_URI, {
@@ -115,55 +133,10 @@ app.use("/api/auth", require("./routes/auth"));
 app.use("/api", mqttRoutes);
 
 // 🚀 Start server (same port for HTTP + WebSocket)
-const PORT = 5000;
+const PORT = 5001;
 server.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
 
 
-
-
-
-
-
-// const express = require("express");
-// const mongoose = require("mongoose");
-// const cors = require("cors");
-// require("dotenv").config();
-
-// const app = express();
-
-// app.use(cors({
-//   origin: process.env.REACT_FE,
-//   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-//   credentials: true,
-//   allowedHeaders: ['Content-Type', 'Authorization']
-// }));
-// app.use(express.json());
-
-// // MongoDB
-// mongoose.connect(process.env.MONGO_URI, {
-//   useNewUrlParser: true,
-//   useUnifiedTopology: true,
-// })
-// .then(() => console.log("✅ MongoDB connected"))
-// .catch(err => console.error("❌ MongoDB connection error:", err));
-
-// // Routes
-// app.use("/api", require("./routes/ForAdmin"));
-// app.use("/api", require("./routes/clientRoutes"));
-// app.use("/api", require("./routes/deviceRoutes"));
-// app.use("/api", require("./routes/deviceMappingRoutes"));
-// app.use("/api", require("./routes/passwordResetRoutes"));
-// app.use("/api", require("./routes/deviceDataRoutes"));
-// app.use("/api/auth", require("./routes/auth"));
-
-// // ✅ ONLY this one route from MQTT (for HTTP use)
-// app.use("/api", require("./routes/mqttRoutes")); // getLatestDeviceData()
-
-// // Start HTTP server only (no WebSocket here)
-// const PORT = 5000;
-// app.listen(PORT, () => {
-//   console.log(`🌐 HTTP API Server running at http://localhost:${PORT}`);
-// });
 

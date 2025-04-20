@@ -131,7 +131,6 @@ import Alerts from './Alerts'; // adjust path if needed
 import { faPen } from '@fortawesome/free-solid-svg-icons';
 const REACT_FE= process.env.REACT_APP_FE_BASE
 const BASE_URL_WS= process.env.REACT_APP_WS_BASE
-console.log(REACT_FE, BASE_URL_WS );
 
 
 function ClientDashboard() {
@@ -225,7 +224,7 @@ const getColor = (level) => {
     let reconnectTimer;
   
     const connectWebSocket = () => {
-      socket = new WebSocket(`ws://${BASE_URL_WS}/ws/live`);
+      socket = new WebSocket(`wss://${BASE_URL_WS}/ws/live`);
   
       socket.onopen = () => {
         console.log("✅ WebSocket connected");
@@ -591,7 +590,7 @@ const getColor = (level) => {
       let reconnectTimer;
     
       const connect = () => {
-        socket = new WebSocket("ws://localhost:5000/ws/live");
+        socket = new WebSocket(`wss://${BASE_URL_WS}/ws/live`);
     
         socket.onopen = () => {
           console.log("✅ WebSocket connected");

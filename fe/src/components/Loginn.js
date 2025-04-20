@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import Cookies from "js-cookie";
 import "bootstrap/dist/css/bootstrap.min.css";
-const REACT_FE= process.env.REACT_APP_FE_BASE
+const REACT_FE= process.env.REACT_APP_FE_BASE;
 
 function Loginn() {
   const [username, setUsername] = useState("");
@@ -14,15 +14,19 @@ function Loginn() {
     e.preventDefault();
   
     try {
-      const res = await axios.post(`${REACT_FE}/api/login`, {
-        username,
-        password,
-      });
+      const res = await axios.post(
+        `${REACT_FE}/api/login`,
+        { username, password },
+        {
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        }
+      );
   
       if (res.status === 200) {
         const { token, role, clientId, username } = res.data;
   
-        // ✅ Store auth details
         localStorage.setItem("token", token);
         localStorage.setItem("role", role);
         localStorage.setItem("username", username);
@@ -30,10 +34,8 @@ function Loginn() {
           localStorage.setItem("clientId", clientId);
         }
   
-        // Optional: if you're still using cookies
         Cookies.set("auth", role, { expires: 1 });
   
-        // ✅ Redirect based on role
         if (role === "admin") {
           navigate("/dashboard");
         } else if (role === "client") {
@@ -44,6 +46,7 @@ function Loginn() {
       alert("Invalid credentials");
     }
   };
+  
   
   return (
     <div className="d-flex justify-content-center align-items-center vh-100 bg-light">
